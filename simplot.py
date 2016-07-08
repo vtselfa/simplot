@@ -86,6 +86,10 @@ def main():
 
     matplotlib.style.use(args.mpl_style)
 
+    # Default grid
+    if args.grid == []:
+        args.grid = [(1,1)]
+
     # Merge plot_base + plot descriptions
     if args.plot_base:
         plots = list()
