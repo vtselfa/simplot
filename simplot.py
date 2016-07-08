@@ -148,7 +148,7 @@ def create_figures(grids, titles):
 # Iterate plots and plot
 def plot_data(axes, plots):
     for plot in plots:
-        if plot["kind"] == "bars":
+        if plot["kind"] in ["bars", "b", "stackedbars", "sb"]:
             plot = BarPlot(**plot)
         else:
             plot = LinePlot(**plot)
@@ -347,7 +347,7 @@ class BarPlot(Plot):
                 colored("You have {} cols but {} error cols: error cols shold be 0, equal or double the number of cols".format(len(self.cols), len(self.ecols)), "red")
 
 
-    def plot_bars(self, use_color=True, use_hatches=False):
+    def plot_bars(self, stacked=False, use_color=True, use_hatches=False):
         ax = plt.gca()
         values = self.df[self.columns]
         errors = None
@@ -379,12 +379,15 @@ class BarPlot(Plot):
 
         # Plot
         if not use_color:
-            values.plot(yerr=errors, kind='bar', ax=ax, color="w", hatch=hatches)
-        values.plot(yerr=errors, kind='bar', ax=ax, hatch=hatches)
+            values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, color="w", hatch=hatches)
+        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, hatch=hatches)
 
 
     def plot(self):
-        self.plot_bars()
+        if self.kind in ["sb", "stackedbars", "sbars"]:
+            self.plot_bars(stacked=True)
+        else:
+            self.plot_bars()
         super().plot()
 
 
