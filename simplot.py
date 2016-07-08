@@ -314,7 +314,7 @@ class BarPlot(Plot):
     kind = "bars"
 
     # Columns to use for errorbars
-    ecols = None # List of ints
+    ecols = [] # List of ints
 
     # Available keyworks for style:
     # hatches:    List of hatches to use.
