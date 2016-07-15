@@ -183,7 +183,7 @@ def write_output(figs, size, dpi, output):
         fig.set_size_inches(*size)
         fig.set_dpi(dpi)
         fig.tight_layout(pad=0, w_pad=0, h_pad=0) # Better spacing between plots
-        pdf.savefig(fig)
+        pdf.savefig(fig, bbox_extra_artists=[ax.legend_ for ax in fig.axes if ax.legend_], bbox_inches='tight', pad_inches = 0)
         plt.close(fig)
     pdf.close()
 
@@ -381,6 +381,13 @@ class BarPlot(Plot):
         if not use_color:
             values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, color="w", hatch=hatches)
         values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, hatch=hatches)
+
+        # Legend
+        if self.legend_options == {}:
+            ax.legend().remove()
+        else:
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(handles, labels, **self.legend_options)
 
 
     def plot(self):
