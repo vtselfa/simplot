@@ -471,10 +471,11 @@ class LinePlot(Plot):
                 tmp.append([ds * len(list(group)) for c, group in it.groupby(ls)])
             dashes = tmp
 
-        for c, (column, marker, dash) in enumerate(zip(columns, it.cycle(markers), it.cycle(dashes))):
+        # colors = self.style.get("colors", [cm.cubehelix(c / len(columns), 1) for c in range(len(columns))])
+        for column, marker, dash in zip(columns, it.cycle(markers), it.cycle(dashes)):
             serie = self.df[column]
             serie = serie.dropna()
-            line, = plt.plot(serie.index.values, serie.tolist(), linewidth=lw, label=self.colabel.get(column, column), axes=ax, color=cm.cubehelix(c / len(columns), 1), marker=marker, markersize=ms, markevery=me)
+            line, = plt.plot(serie.index.values, serie.tolist(), linewidth=lw, label=self.colabel.get(column, column), axes=ax, marker=marker, markersize=ms, markevery=me)
             if use_dashes:
                 assert dash, "Invalid dash style"
                 if len(dash) == 1:
