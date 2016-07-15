@@ -355,7 +355,7 @@ class BarPlot(Plot):
         hatches = None
         if use_hatches:
             hatches = self.style.get("hatches", ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O'))
-            assert(len(self.cols) <= len(hatches)), colored("Not eneugh hatches", "red")
+            assert(len(self.cols) <= len(hatches)), colored("Not enough hatches", "red")
 
         # Error bars
         if self.ecols:
