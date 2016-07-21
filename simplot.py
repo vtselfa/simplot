@@ -135,7 +135,7 @@ def create_figures(grids, titles):
     for (xgrid, ygrid), title in it.zip_longest(grids, titles):
         fig, axs = plt.subplots(xgrid, ygrid)
         if title:
-            fig.suptitle(title, fontsize=15)
+            fig.suptitle(title, fontsize=font["size"], y=1.05)
         try:
             axs = list(axs.ravel()) # 2D to 1D
         except AttributeError:
@@ -183,7 +183,10 @@ def write_output(figs, size, dpi, output):
         fig.set_size_inches(*size)
         fig.set_dpi(dpi)
         fig.tight_layout(pad=0, w_pad=0, h_pad=0) # Better spacing between plots
-        pdf.savefig(fig, bbox_extra_artists=[ax.legend_ for ax in fig.axes if ax.legend_], bbox_inches='tight', pad_inches = 0)
+        extra_artists = [ax.legend_ for ax in fig.axes if ax.legend_]
+        if fig._suptitle:
+            extra_artists += [fig._suptitle]
+        pdf.savefig(fig, bbox_extra_artists=extra_artists, bbox_inches='tight', pad_inches = 0)
         plt.close(fig)
     pdf.close()
 
