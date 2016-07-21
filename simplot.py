@@ -243,7 +243,7 @@ class Plot:
         if self.labels:
             assert len(self.labels) == len(self.cols), colored("The number of labels and columns is different", 'red')
             for label, col in zip(self.labels, self.cols):
-                self.colabel[df.columns[col]] = label
+                self.colabel[self.df.columns[col]] = label
 
         # Store used columns names
         self.columns = [self.df.columns[col] for col in self.cols]
@@ -390,6 +390,9 @@ class BarPlot(Plot):
             ax.legend().remove()
         else:
             handles, labels = ax.get_legend_handles_labels()
+            # Override labels
+            if self.labels:
+                labels = self.labels
             ax.legend(handles, labels, **self.legend_options)
 
 
