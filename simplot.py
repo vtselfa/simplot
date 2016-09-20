@@ -230,6 +230,9 @@ class Plot:
     ylabel = ""
     xlabel = ""
 
+    xgrid = False
+    ygrid = False
+
     index = None # int
 
 
@@ -280,6 +283,8 @@ class Plot:
         ax.set_ylabel(self.ylabel, **self.font)
         ax.set_xlabel(self.xlabel, **self.font)
 
+        plt.tick_params(axis='both', which='major', labelsize=self.font["size"])
+
         # Scientific format tick labels
         if hasattr(self, "xscy") and self.xscy:
             plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
@@ -311,6 +316,12 @@ class Plot:
         # Rotation
         if self.xrot:
             plt.xticks(rotation=self.xrot)
+
+        # Grid
+        if self.xgrid != None:
+            ax.xaxis.grid(self.xgrid)
+        if self.ygrid != None:
+            ax.yaxis.grid(self.ygrid)
 
 
 class BarPlot(Plot):
