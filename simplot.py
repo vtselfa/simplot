@@ -314,7 +314,7 @@ class Plot:
             ax.yaxis.set_major_formatter(PercentFormatter)
 
         # Rotation
-        if self.xrot:
+        if self.xrot != None:
             plt.xticks(rotation=self.xrot)
 
         # Grid
