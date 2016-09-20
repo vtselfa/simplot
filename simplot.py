@@ -393,8 +393,8 @@ class BarPlot(Plot):
 
         # Plot
         if not use_color:
-            values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, color="w", hatch=hatches)
-        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, hatch=hatches)
+            values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, color="w", hatch=hatches, error_kw={"elinewidth":1})
+        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, hatch=hatches, error_kw={"elinewidth":1})
 
         # Legend
         if self.legend_options == {}:
