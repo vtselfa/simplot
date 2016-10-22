@@ -36,6 +36,7 @@ import traceback
 import yaml
 
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.ticker import FuncFormatter
 from termcolor import colored
 
 
@@ -230,10 +231,15 @@ class Plot:
     ylabel = ""
     xlabel = ""
 
+    # Use grid?
     xgrid = False
     ygrid = False
 
+    # Index column
     index = None # int
+
+    # The colors are cycled, this allows to pick a different starting color in the cycle
+    starting_color = 0
 
 
     def __init__(self):
@@ -283,7 +289,8 @@ class Plot:
         ax.set_ylabel(self.ylabel, **self.font)
         ax.set_xlabel(self.xlabel, **self.font)
 
-        plt.tick_params(axis='both', which='major', labelsize=self.font["size"])
+        if "size" in self.font:
+            plt.tick_params(axis='both', which='major', labelsize=self.font["size"])
 
         # Scientific format tick labels
         if hasattr(self, "xscy") and self.xscy:
@@ -470,6 +477,10 @@ class LinePlot(Plot):
         ax = plt.gca()
         columns = self.columns
 
+        if self.starting_color:
+            for _ in range(self.starting_color):
+                next(ax._get_lines.prop_cycler)['color']
+
         lw = self.style.get("linewidth", 2)
         ms = self.style.get("markersize", 5)
         me = self.style.get("markevery", 1)
@@ -520,6 +531,18 @@ class LinePlot(Plot):
 
         super().plot()
 
+
+def to_percent(y, position):
+    # Ignore the passed in position. This has the effect of scaling the default
+    # tick locations.
+    s = "{0:g}".format(100 * y)
+
+    # The percent symbol needs escaping in latex
+    if mpl.rcParams['text.usetex'] is True:
+        return s + r'$\%$'
+    else:
+        return s + '%'
+PercentFormatter = FuncFormatter(to_percent)
 
 
 
