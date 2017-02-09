@@ -38,6 +38,7 @@ import yaml
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
 from termcolor import colored
+from cycler import cycler
 
 
 #
@@ -58,6 +59,7 @@ legend = {
 }
 mpl.rc('font', **font)
 mpl.rc('legend', **legend)
+mpl.rcParams['patch.force_edgecolor'] = True
 
 # Better dataframe pretty printing
 pd.set_option('display.expand_frame_repr', False)
@@ -80,7 +82,7 @@ def main():
             'This option can be specified multiple times in order to have diferent groups of plots with different axes.')
     parser.add_argument('--title', action='append', default=[], help='Title for each figure.')
     parser.add_argument('-o', '--output', default='./plot.pdf', help='PDF output.')
-    parser.add_argument('--mpl-style', default='bmh', metavar="STYLE", choices=mpl_styles, help='Matplotlib style. You can choose from: ' + ", ".join(mpl_styles))
+    parser.add_argument('--mpl-style', default="default", metavar="STYLE", choices=mpl_styles, help='Matplotlib style. You can choose from: ' + ", ".join(mpl_styles))
     parser.add_argument('--size', type=float, nargs=2, default=(11.6, 8.2), metavar=('X', 'Y'), help='Size of the figure in inches.')
     parser.add_argument('--dpi', type=int, default=100, help='Dots Per Inch.')
     args = parser.parse_args()
@@ -240,12 +242,17 @@ class Plot:
 
     # The colors are cycled, this allows to pick a different starting color in the cycle
     starting_color = 0
+    colormap = None # Colormap to pick colors from
 
 
     def __init__(self):
-        assert self.cols, colored("You shold provide some cols to plot e.g. --plot '{... cols: [1,2,3], ...}'", "red")
+        # assert self.cols, colored("You shold provide some cols to plot e.g. --plot '{... cols: [1,2,3], ...}'", "red")
         assert self.index != None, colored("You shold provide an index e.g. --plot '{... index: 0, ...}'", "red")
-        assert self.index not in self.cols, colored("You are trying to plot the index... cols is {} and the index is {}".format(self.cols, self.index), "red")
+        assert self.cols == None or self.index not in self.cols, colored("You are trying to plot the index... cols is {} and the index is {}".format(self.cols, self.index), "red")
+
+        # If no cols are specified, we assume all but the index
+        if not self.cols:
+            self.cols = [i for i in range(len(self.df.columns)) if i != self.index]
 
         # Map col to label
         self.colabel = dict()
@@ -264,6 +271,13 @@ class Plot:
         if Plot.ax == self.ax:
             self.ax = Plot.ax
             Plot.ax += 1
+
+        # Use colors from colormap
+        if self.colormap:
+            ax = plt.gca()
+            cmap = plt.get_cmap(self.colormap)
+            colors = [cmap(c / (len(self.cols) + self.starting_color), 1) for c in range(len(self.cols) + self.starting_color)]
+            ax.set_prop_cycle(cycler('color', colors))
 
 
     def check_and_set(self, kwds):
@@ -368,15 +382,10 @@ class BarPlot(Plot):
                 colored("You have {} cols but {} error cols: error cols shold be 0, equal or double the number of cols".format(len(self.cols), len(self.ecols)), "red")
 
 
-    def plot_bars(self, stacked=False, use_color=True, use_hatches=False):
+    def plot_bars(self, stacked=False):
         ax = plt.gca()
         values = self.df[self.columns]
         errors = None
-
-        hatches = None
-        if use_hatches:
-            hatches = self.style.get("hatches", ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O'))
-            assert(len(self.cols) <= len(hatches)), colored("Not enough hatches", "red")
 
         # Error bars
         if self.ecols:
@@ -399,9 +408,38 @@ class BarPlot(Plot):
                 errors = errors.values.T
 
         # Plot
-        if not use_color:
-            values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, color="w", hatch=hatches, error_kw={"elinewidth":1})
-        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, hatch=hatches, error_kw={"elinewidth":1})
+        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, error_kw={"elinewidth":1})
+
+        if "hatches" in self.style:
+            # Posible hatches ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
+            hatches = self.style["hatches"]
+            bars = ax.patches
+            aux = []
+            for h in hatches:
+                aux += [h] * len(values)
+            hatches = aux
+            for bar, hatch in zip(bars, hatches):
+                bar.set_hatch(hatch)
+
+        # Fix colors...
+        bars = ax.patches
+        aux = []
+        for c, _ in zip(ax._get_lines.prop_cycler, bars):
+            c = c["color"]
+            aux += [c] * len(values)
+        colors = aux
+        for bar, c in zip(bars, colors):
+            bar.set_facecolor(c)
+
+        if "colors" in self.style:
+            colors = self.style["colors"]
+            bars = ax.patches
+            aux = []
+            for c in colors:
+                aux += [c] * len(values)
+            colors = aux
+            for bar, c in zip(bars, colors):
+                bar.set_facecolor(c)
 
         # Legend
         if self.legend_options == {}:
@@ -411,7 +449,15 @@ class BarPlot(Plot):
             # Override labels
             if self.labels:
                 labels = self.labels
-            ax.legend(handles, labels, **self.legend_options)
+            if stacked:
+                # Workaround for inverting legend order
+                handles, labels = ax.get_legend_handles_labels()
+                proxy = list()
+                for i,h in enumerate(handles):
+                    proxy.append(h.get_children()[0])
+                    ax.legend(proxy[::-1], labels[::-1], **self.legend_options)
+            else:
+                ax.legend(handles, labels, **self.legend_options)
 
 
     def plot(self):
@@ -452,6 +498,8 @@ class LinePlot(Plot):
     xlog = False
     ylog = False
 
+    starting_marker = 0
+    starting_dash = 0
 
     def __init__(self, **kwds):
         self.check_and_set(kwds)
@@ -462,7 +510,7 @@ class LinePlot(Plot):
         # Plot
         ax = plt.gca()
         columns = self.columns
-        df[columns].plot(kind="area", colormap='cubehelix_r', ax=ax)
+        df[columns].plot(kind="area", colormap=self.colormap, ax=ax)
 
         # Workaround for inverting legend order
         handles, labels = ax.get_legend_handles_labels()
@@ -486,29 +534,38 @@ class LinePlot(Plot):
         me = self.style.get("markevery", 1)
         ds = self.style.get("dashsize", 5)
 
-        markers = [None]
+        markers = it.cycle([None])
         if use_markers:
-            markers = self.style.get("markers", ('s', 'o', '^', '*', '>', '8', '<', 'p', 'v', 'h', 'H', 'D', 'd'))
-            assert(len(columns) <= len(markers)), colored("Not eneugh markers", "red")
+            markers = it.cycle(self.style.get("markers", ('s', 'o', '^', '>', '*', '<', 'p', 'v', 'h', 'H', 'D', 'd')))
+            for _ in range(self.starting_marker):
+                next(markers)
 
-        dashes = [None]
+        dashes = it.cycle([None])
         if use_dashes:
             dashes = self.style.get("dashes", ("-", "--..", "---.", "-."))
             tmp = list()
             for i, ls in enumerate(dashes):
                 tmp.append([ds * len(list(group)) for c, group in it.groupby(ls)])
-            dashes = tmp
+            dashes = it.cycle(tmp)
+            for _ in range(self.starting_dash):
+                next(dashes)
 
-        # colors = self.style.get("colors", [cm.cubehelix(c / len(columns), 1) for c in range(len(columns))])
-        for column, marker, dash in zip(columns, it.cycle(markers), it.cycle(dashes)):
+        for column, marker, dash in zip(columns, markers, dashes):
             serie = self.df[column]
             serie = serie.dropna()
-            line, = plt.plot(serie.index.values, serie.tolist(), linewidth=lw, label=self.colabel.get(column, column), axes=ax, marker=marker, markersize=ms, markevery=me)
+            line, = plt.plot(serie.index.values, serie.tolist(), linewidth=lw, label=self.colabel.get(column, column), axes=ax, marker=marker, markersize=ms, markevery=me, markeredgewidth=0.5,  markeredgecolor='k')
             if use_dashes:
                 assert dash, "Invalid dash style"
                 if len(dash) == 1:
                     dash = [] # Normal line
                 line.set_dashes(dash)
+
+        if "colors" in self.style:
+            colors = self.style["colors"]
+            lines = ax.lines
+            for line, c in zip(lines, colors):
+                line.set_color(c)
+                line.set_markeredgecolor(c)
 
         # Legend
         if self.legend_options != {}:
