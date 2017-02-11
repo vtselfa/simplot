@@ -245,6 +245,9 @@ class Plot:
     starting_color = 0
     colormap = None # Colormap to pick colors from
 
+    # Horizontal lines
+    hl = []
+
 
     def __init__(self):
         # assert self.cols, colored("You shold provide some cols to plot e.g. --plot '{... cols: [1,2,3], ...}'", "red")
@@ -285,6 +288,27 @@ class Plot:
         for key in kwds:
             assert key in dir(self), colored("'{}' is not a valid keyword for this kind of plot".format(key), "red")
         self.__dict__.update(kwds)
+
+
+    # Plot horizontal line
+    def plot_hl(self):
+        ax = plt.gca()
+        if not isinstance(self.hl, list) or isinstance(self.hl[1], dict):
+            self.hl = [self.hl]
+
+        for line in self.hl:
+            prop = {"color": "k", "lw" : 1}
+            if isinstance(line, (list, tuple)):
+                assert(len(line) == 2)
+                assert(isinstance(line[1], dict))
+                y = float(line[0])
+                prop.update(line[1])
+            else:
+                y = float(line)
+
+            x = ax.get_xlim()
+            plt.plot((x[0], x[1]), (y, y), **prop)
+
 
 
     def plot(self):
@@ -344,6 +368,9 @@ class Plot:
             ax.xaxis.grid(self.xgrid)
         if self.ygrid != None:
             ax.yaxis.grid(self.ygrid)
+
+        if self.hl:
+            self.plot_hl()
 
 
 class BarPlot(Plot):
