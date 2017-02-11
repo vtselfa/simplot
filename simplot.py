@@ -84,6 +84,7 @@ def main():
     parser.add_argument('-o', '--output', default='./plot.pdf', help='PDF output.')
     parser.add_argument('--mpl-style', default="default", metavar="STYLE", choices=mpl_styles, help='Matplotlib style. You can choose from: ' + ", ".join(mpl_styles))
     parser.add_argument('--size', type=float, nargs=2, default=(11.6, 8.2), metavar=('X', 'Y'), help='Size of the figure in inches.')
+    parser.add_argument('--rect', type=float, nargs=4, default=[0, 0, 1, 1], metavar=('LEFT', 'BOTTOM', 'RIGHT', 'TOP'), help='Relative size of all the plots and titles in the figure.')
     parser.add_argument('--dpi', type=int, default=100, help='Dots Per Inch.')
     args = parser.parse_args()
 
@@ -115,7 +116,7 @@ def main():
 
     plot_data(axes, args.plot)
     equalize_yaxis(axes, args.equal_yaxes)
-    write_output(figs, args.size, args.dpi, args.output)
+    write_output(figs, args.size, args.dpi, args.output, args.rect)
 
 
 # Read CSV file and transform it to a pandas dataframe
@@ -176,7 +177,7 @@ def equalize_yaxis(axes, groups):
 
 
 # Write plots to pdf, creating dirs, if needed
-def write_output(figs, size, dpi, output):
+def write_output(figs, size, dpi, output, rect):
     destdir = osp.dirname(output)
     if destdir != "":
         os.makedirs(osp.dirname(output), exist_ok=True)
@@ -185,11 +186,11 @@ def write_output(figs, size, dpi, output):
         pl.figure(fig.number)
         fig.set_size_inches(*size)
         fig.set_dpi(dpi)
-        fig.tight_layout(pad=0, w_pad=0, h_pad=0) # Better spacing between plots
         extra_artists = [ax.legend_ for ax in fig.axes if ax.legend_]
         if fig._suptitle:
             extra_artists += [fig._suptitle]
-        pdf.savefig(fig, bbox_extra_artists=extra_artists, bbox_inches='tight', pad_inches = 0)
+        fig.tight_layout(pad=0, rect=rect) # Better spacing between plots
+        pdf.savefig(fig, bbox_extra_artists=extra_artists, pad_inches = 0)
         plt.close(fig)
     pdf.close()
 
