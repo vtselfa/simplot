@@ -1,6 +1,6 @@
 #!/bin/python
 
-# Copyright (C) 2016  Vicent Selfa (viselol@disca.upv.es)
+# Copyright (C) 2017  Vicent Selfa (viselol@disca.upv.es)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,8 +19,9 @@
 
 import argparse
 import itertools as it
+import importlib
 import math
-import matplotlib as mpl
+import matplotlib as mpl; mpl.use('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.style
@@ -154,6 +155,8 @@ def plot_data(axes, plots):
     for plot in plots:
         if plot["kind"] in ["bars", "b", "stackedbars", "sb"]:
             plot = BarPlot(**plot)
+        elif plot["kind"] == "box":
+            plot = BoxPlot(**plot)
         else:
             plot = LinePlot(**plot)
         ax = axes[plot.ax]               # Set axes
@@ -162,7 +165,7 @@ def plot_data(axes, plots):
         plot.plot()
 
 
-# Force the same ymin and mymax values for multiple plots
+# Force the same ymin and ymax values for multiple plots
 def equalize_yaxis(axes, groups):
     for group in groups:
         ymin = float("+inf")
@@ -227,6 +230,9 @@ class Plot:
     # Rotation degrees for the x labels
     xrot = None
 
+    # Horizontal aligment for x labels
+    xtick_ha = "center"
+
     # Convert to percentages
     ypercent = None
 
@@ -238,12 +244,23 @@ class Plot:
     xgrid = False
     ygrid = False
 
+    # Limits
+    ymin = None # None / Float
+    ymax = None # None / Float
+
+    # X/Y major/minor ticks locator. Either ["Locator", {"args": "for",  "the": "locator"}] or "Locator"
+    # See http://matplotlib.org/api/ticker_api.html
+    ymajorlocator = None
+    xmajorlocator = None
+    yminorlocator = None
+    xminorlocator = None
+
     # Index column
     index = None # int
 
-    # The colors are cycled, this allows to pick a different starting color in the cycle
-    starting_color = 0
     colormap = None # Colormap to pick colors from
+    color = None # Colors to override default style or colors from colormap
+    starting_style = 0 # The colors and other propierties are cycled, this allows to pick a different starting style
 
     # Horizontal lines
     hl = []
@@ -280,8 +297,14 @@ class Plot:
         if self.colormap:
             ax = plt.gca()
             cmap = plt.get_cmap(self.colormap)
-            colors = [cmap(c / (len(self.cols) + self.starting_color), 1) for c in range(len(self.cols) + self.starting_color)]
-            ax.set_prop_cycle(cycler('color', colors))
+            cmcolor = [cmap(c / (len(self.cols) + self.starting_style), 1) for c in range(len(self.cols) + self.starting_style)]
+
+            # Override colors
+            if self.color:
+                for i, (c1, c2) in enumerate(zip(self.color, cmcolor)):
+                    if (c1):
+                        cmcolor[i] = c1
+            self.color = cmcolor
 
 
     def check_and_set(self, kwds):
@@ -317,10 +340,6 @@ class Plot:
         # Mark this plot as plotted
         self.plotted = True
 
-        # Set Matplotlib font
-        # if self.font:
-        #     mpl.rc('font', **self.font)
-
         ax = plt.gca()
 
         # Labels
@@ -330,12 +349,6 @@ class Plot:
 
         if "size" in self.font:
             plt.tick_params(axis='both', which='major', labelsize=self.font["size"])
-
-        # Scientific format tick labels
-        if hasattr(self, "xscy") and self.xscy:
-            plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
-        if self.yscy:
-            plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
         # Limits
         ax.set_ylim(top=self.ymax, bottom=self.ymin)
@@ -347,21 +360,28 @@ class Plot:
             xmax = self.xmax
         ax.set_xlim(left=xmin, right=xmax)
 
-        # X ticks
-        if hasattr(self, "xstepsize") and self.xstepsize:
-            start, end = ax.get_xlim()
-            ax.xaxis.set_ticks(np.arange(start, end, self.xstepsize))
-        if hasattr(self, "xnumsteps") and self.xnumsteps:
-            start, end = ax.get_xlim()
-            ax.xaxis.set_ticks(np.linspace(start, end, num=self.xnumsteps))
+        # X/Y tick locators
+        for setter, locator in [(ax.xaxis.set_major_locator, self.xmajorlocator), (ax.yaxis.set_major_locator, self.ymajorlocator), (ax.xaxis.set_minor_locator, self.xminorlocator), (ax.yaxis.set_minor_locator, self.yminorlocator)]:
+            if locator:
+                if isinstance(locator, list):
+                    assert(len(locator) == 2)
+                    loc = locator[0]
+                    args = locator[1]
+                    assert isinstance(loc, str)
+                    assert isinstance(args, dict)
+                else:
+                    loc = locator
+                    args = {}
+                locator = getattr(ticker, loc)
+                setter(locator(**args))
 
         # Percentage
         if self.ypercent:
             ax.yaxis.set_major_formatter(PercentFormatter)
 
-        # Rotation
+        # X tick rotation and horizontal alingment
         if self.xrot != None:
-            plt.xticks(rotation=self.xrot)
+            plt.xticks(rotation=self.xrot, horizontalalignment=self.xtick_ha)
 
         # Grid
         if self.xgrid != None:
@@ -369,8 +389,38 @@ class Plot:
         if self.ygrid != None:
             ax.yaxis.grid(self.ygrid)
 
+        # Draw horizontal lines
         if self.hl:
             self.plot_hl()
+
+        # Remove legend
+        if self.legend_options == {}:
+            ax.legend().remove()
+
+
+class BoxPlot(Plot):
+    kind = "box"
+    xrot = 45
+
+    def __init__(self, **kwds):
+        self.check_and_set(kwds)
+        super().__init__()
+
+
+    def plot_box(self):
+        columns = self.df[self.columns]
+        if self.labels:
+            labels = self.labels
+        else:
+            labels = columns.columns
+
+        # Plot
+        plt.boxplot(columns.T.values.tolist(), labels=labels)
+
+
+    def plot(self):
+        self.plot_box()
+        super().plot()
 
 
 class BarPlot(Plot):
@@ -379,23 +429,10 @@ class BarPlot(Plot):
     # Columns to use for errorbars
     ecols = [] # List of ints
 
-    # Available keyworks for style:
-    # hatches:    List of hatches to use.
-    # hatchdensity: Int. How dense are the hatches.
-    style = {"hatchdensity": 3}
-
-    # Limits
-    ymin = None # None / Float
-    ymax = None # None / Float
-
-    # Scientific notation in axes
-    yscy = False
-
-    # Log scale
-    ylog = False
-
     # Errorbars {'min', 'max', 'both'}
     errorbars = "both"
+
+    hatches = ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
 
 
     def __init__(self, **kwds):
@@ -435,21 +472,25 @@ class BarPlot(Plot):
                 assert len(self.cols) * 2 == len(self.ecols), colored("Two error columns are needed for each value column", "red")
                 errors = errors.values.T
 
-        # Plot
-        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, error_kw={"elinewidth":1})
+        legend = None
+        if stacked:
+            legend = "reverse"
 
-        if "hatches" in self.style:
+        # Plot
+        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, error_kw={"elinewidth":1}, legend=legend)
+
+        # Ugly fix for hatches
+        if self.hatches:
             # Posible hatches ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
-            hatches = self.style["hatches"]
             bars = ax.patches
             aux = []
-            for h in hatches:
+            for h in self.hatches:
                 aux += [h] * len(values)
             hatches = aux
             for bar, hatch in zip(bars, hatches):
                 bar.set_hatch(hatch)
 
-        # Fix colors...
+        # Ugly fix for colors...
         bars = ax.patches
         aux = []
         for c, _ in zip(ax._get_lines.prop_cycler, bars):
@@ -458,9 +499,8 @@ class BarPlot(Plot):
         colors = aux
         for bar, c in zip(bars, colors):
             bar.set_facecolor(c)
-
-        if "colors" in self.style:
-            colors = self.style["colors"]
+        if self.color:
+            colors = self.color
             bars = ax.patches
             aux = []
             for c in colors:
@@ -470,22 +510,10 @@ class BarPlot(Plot):
                 bar.set_facecolor(c)
 
         # Legend
-        if self.legend_options == {}:
-            ax.legend().remove()
-        else:
-            handles, labels = ax.get_legend_handles_labels()
-            # Override labels
-            if self.labels:
-                labels = self.labels
-            if stacked:
-                # Workaround for inverting legend order
-                handles, labels = ax.get_legend_handles_labels()
-                proxy = list()
-                for i,h in enumerate(handles):
-                    proxy.append(h.get_children()[0])
-                    ax.legend(proxy[::-1], labels[::-1], **self.legend_options)
-            else:
-                ax.legend(handles, labels, **self.legend_options)
+        handles, labels = ax.get_legend_handles_labels()
+        if self.labels:
+            labels = self.labels
+        ax.legend(handles, labels, **self.legend_options)
 
 
     def plot(self):
@@ -499,120 +527,100 @@ class BarPlot(Plot):
 class LinePlot(Plot):
     kind = "line"
 
-    # Available keyworks for style:
-    # markers:    List of markers to use.
-    # dashes:     List of dashes to use. Each dash is expressed as an string of chunks of symbols e.g. "---..." or "-.".
-    #             "---..." is translated to 3 * dashsize dots of continuous line followed by  3 * dashsize blanc dots.
-    # markersize: Size of the markers. Float value.
-    # markevery:  Don't put a marker in every datapoint. Int value.
-    # dashsize:   How many dots per symbol used describing the dashes.
-    # linewidth   How thick the lines are.
-    style = {}
+    linewidth = 2
+    linestyle = None
+    marker = None
+    markersize = 6
+    markevery = 1
+    markeredgecolor = 'k'
+    markeredgewidth = 0.5
 
     # Limits
     xmin = None # None / Float
     xmax = None # None / Float
-    ymin = None # None / Float
-    ymax = None # None / Float
 
-    xstepsize = None
-    xnumsteps = None
-
-    # Scientific notation in axes
-    xscy = False
-    yscy = False
-
-    # Log scale
-    xlog = False
-    ylog = False
-
-    starting_marker = 0
-    starting_dash = 0
 
     def __init__(self, **kwds):
         self.check_and_set(kwds)
-        super().__init__()
+        super(LinePlot, self).__init__()
 
 
-    def plot_area(self):
+    def plot_area(self, stacked=False):
         # Plot
         ax = plt.gca()
         columns = self.columns
-        df[columns].plot(kind="area", colormap=self.colormap, ax=ax)
 
-        # Workaround for inverting legend order
-        handles, labels = ax.get_legend_handles_labels()
-        labels = list(map(lambda x: self.colabel[x], labels))
-        proxy = list()
-        for i,h in enumerate(handles):
-            proxy.append(mpl.patches.Rectangle((0, 0), 1, 1, fc=h.get_color()))
-            ax.legend(proxy[::-1], labels[::-1], **self.legend_options)
+        legend = None
+        if stacked:
+            legend = "reverse"
 
-
-    def plot_line(self, use_dashes=False, use_markers=False):
-        ax = plt.gca()
-        columns = self.columns
-
-        if self.starting_color:
-            for _ in range(self.starting_color):
-                next(ax._get_lines.prop_cycler)['color']
-
-        lw = self.style.get("linewidth", 2)
-        ms = self.style.get("markersize", 5)
-        me = self.style.get("markevery", 1)
-        ds = self.style.get("dashsize", 5)
-
-        markers = it.cycle([None])
-        if use_markers:
-            markers = it.cycle(self.style.get("markers", ('s', 'o', '^', '>', '*', '<', 'p', 'v', 'h', 'H', 'D', 'd')))
-            for _ in range(self.starting_marker):
-                next(markers)
-
-        dashes = it.cycle([None])
-        if use_dashes:
-            dashes = self.style.get("dashes", ("-", "--..", "---.", "-."))
-            tmp = list()
-            for i, ls in enumerate(dashes):
-                tmp.append([ds * len(list(group)) for c, group in it.groupby(ls)])
-            dashes = it.cycle(tmp)
-            for _ in range(self.starting_dash):
-                next(dashes)
-
-        for column, marker, dash in zip(columns, markers, dashes):
-            serie = self.df[column]
-            serie = serie.dropna()
-            line, = plt.plot(serie.index.values, serie.tolist(), linewidth=lw, label=self.colabel.get(column, column), axes=ax, marker=marker, markersize=ms, markevery=me, markeredgewidth=0.5,  markeredgecolor='k')
-            if use_dashes:
-                assert dash, "Invalid dash style"
-                if len(dash) == 1:
-                    dash = [] # Normal line
-                line.set_dashes(dash)
-
-        if "colors" in self.style:
-            colors = self.style["colors"]
-            lines = ax.lines
-            for line, c in zip(lines, colors):
-                line.set_color(c)
-                line.set_markeredgecolor(c)
+        self.df[columns].plot(kind="area", colormap=self.colormap, ax=ax, stacked=stacked, legend=legend)
 
         # Legend
-        if self.legend_options != {}:
-            handles, labels = ax.get_legend_handles_labels()
-            ax.legend(handles, labels, **self.legend_options)
+        handles, labels = ax.get_legend_handles_labels()
+        labels = [self.colabel.get(column, column) for column in columns]
+        ax.legend(handles, labels, **self.legend_options)
+
+
+    def plot_line(self):
+        ax = plt.gca()
+        columns = self.columns
+        style_props = ["color", "linewidth", "linestyle", "marker", "markersize", "markevery", "markeredgecolor", "markeredgewidth"]
+
+        # Convert all the style propierties into cycle iterators and set them to the correct starting point
+        style_cycler = None
+        for prop in style_props:
+            value = getattr(self, prop)
+            if value == None:
+                continue
+            if not isinstance(value, list):
+                value = [value]
+            prop_cycler = cycler(prop, value) * (len(columns) + self.starting_style)
+            if not style_cycler:
+                style_cycler = prop_cycler
+            else:
+                style_cycler += prop_cycler
+
+        for _ in range(self.starting_style):
+            next(style_cycler)
+
+        for column, sty in zip(columns, style_cycler):
+            serie = self.df[column]
+            serie = serie.dropna()
+            line, = plt.plot(serie.index.values, serie.tolist(), label=self.colabel.get(column, column), axes=ax, **sty)
+
+        # Legend
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, **self.legend_options)
+
 
     def plot(self):
+        valid = False
+
         if self.kind == "area" or self.kind == "a":
+            valid = True
             self.plot_area()
-        elif self.kind == "line" or self.kind == "l":
-            self.plot_line()
-        elif self.kind == "dashedline" or self.kind == "dl":
-            self.plot_line(use_dashes=True)
-        elif self.kind == "markedline" or self.kind == "ml":
-            self.plot_line(use_markers=True)
-        elif self.kind == "dashedmarkedline" or self.kind == "markeddashedline" or self.kind == "mdl" or self.kind == "dml":
-            self.plot_line(use_markers=True, use_dashes=True)
+        elif self.kind == "stackedarea" or self.kind == "sa":
+            valid = True
+            self.plot_area(stacked=True)
         else:
-            assert False, colored("Plot kind '{}' invalid)", "red")
+            if self.kind == "line" or self.kind == "l":
+                valid = True
+
+            if self.kind in ["dashedline", "dl", "dashedmarkedline", "markeddashedline", "mdl", "dml"]:
+                valid = True
+                if not self.linestyle:
+                    self.linestyle = ('-', '--  ', '--- ', '- ')
+
+            if self.kind in ["markedline", "ml", "dashedmarkedline", "markeddashedline", "mdl", "dml"]:
+                valid = True
+                if not self.marker:
+                    self.marker = ['s', 'o', '^', '>', '*', '<', 'p', 'v', 'h', 'H', 'D', 'd']
+
+            self.plot_line()
+
+        if not valid:
+            assert False, colored("Plot kind '{}' is not valid)".format(self.kind), "red")
 
         super().plot()
 
