@@ -278,7 +278,7 @@ class Plot:
         # Map col to label
         self.colabel = dict()
         if self.labels:
-            assert len(self.labels) == len(self.cols), colored("The number of labels and columns is different", 'red')
+            assert len(self.labels) == len(self.cols), colored("The number of labels({}) and columns({}) is different".format(len(self.labels), len(self.cols)), 'red')
             for label, col in zip(self.labels, self.cols):
                 self.colabel[self.df.columns[col]] = label
 
