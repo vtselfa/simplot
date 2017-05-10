@@ -45,7 +45,9 @@ def parse_args(args=None):
     parser.add_argument('--plot-base', type=yaml.load, help='Plot in YAML dictionary format. See --plot.', default="{}")
     parser.add_argument('-g', '--grid', action='append', type=int, nargs=2, default=[], metavar=('ROWS', 'COLS'), help='Number of rows and columns of plots. '
             'Use this argument multiple times to descrive the pages of a multipage PDF. Plots are put on the grid spaces left-right and up-down.')
-    parser.add_argument('--equal-yaxes', action='append', nargs='+', default=[], metavar="PLOT_ID", help='Equalize the axes of the subplot IDs passed as an argument. '
+    parser.add_argument('--equal-yaxes', action='append', nargs='+', type=int,  default=[], metavar="PLOT_ID", help='Equalize the Y axes of the subplot IDs passed as an argument. '
+            'This option can be specified multiple times in order to have diferent groups of plots with different axes.')
+    parser.add_argument('--equal-xaxes', action='append', nargs='+', type=int, default=[], metavar="PLOT_ID", help='Equalize the X axes of the subplot IDs passed as an argument. '
             'This option can be specified multiple times in order to have diferent groups of plots with different axes.')
     parser.add_argument('--title', action='append', default=[], help='Title for each figure.')
     parser.add_argument('-o', '--output', default='./plot.pdf', help='PDF output.')
@@ -73,7 +75,7 @@ def parse_args(args=None):
 def main():
     args = parse_args()
     figs, axes = create_figures(args.grid, args.size, args.dpi)
-    plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     write_output(figs, args.output, args.rect)
 
 
@@ -111,7 +113,7 @@ def create_figures(grids, size, dpi):
 
 
 # Iterate plots and plot
-def plot_data(figs, axes, plots, titles, equal_yaxes_groups, rect):
+def plot_data(figs, axes, plots, titles, equal_xaxes_groups, equal_yaxes_groups, rect):
     assert titles == [] or len(figs) == len(titles), colored("If --title is used, a title for each figure must be provided", 'red')
     axnum = 0
     for p in plots:
@@ -126,12 +128,14 @@ def plot_data(figs, axes, plots, titles, equal_yaxes_groups, rect):
         if p.axnum != None:
             ax = axes[p.axnum]
         else:
+            assert len(axes) > axnum, colored("Too many plots for this grid", 'red')
             ax = axes[axnum]
             axnum += 1
 
         plt.sca(ax)
         ax.autoscale(enable=True, axis='both', tight=True)
         p.plot()
+    equalize_xaxis(axes, equal_xaxes_groups)
     equalize_yaxis(axes, equal_yaxes_groups)
     for fig, title in it.zip_longest(figs, titles):
         if title:
@@ -153,6 +157,20 @@ def equalize_yaxis(axes, groups):
             ymax = max(ymax, y2)
         for ax in group:
             ax.set_ylim(top=ymax, bottom=ymin)
+
+
+# Force the same ymin and ymax values for multiple plots
+def equalize_xaxis(axes, groups):
+    for group in groups:
+        xmin = float("+inf")
+        xmax = float("-inf")
+        group = [axes[i] for i in group] # Translate IDs to axes
+        for ax in group:
+            x1, x2 = ax.get_xlim()
+            xmin = min(xmin, x1)
+            xmax = max(xmax, x2)
+        for ax in group:
+            ax.set_xlim(right=xmax, left=xmin)
 
 
 # Write plots to pdf, creating dirs, if needed

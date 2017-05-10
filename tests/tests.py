@@ -6,8 +6,6 @@ import shlex
 from matplotlib.testing.decorators import image_comparison
 
 
-
-
 @image_comparison(baseline_images=['t1'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_lineplot():
     args =  " --plot '{kind: l, index: 0, cols: [1,2,3,4], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1, Y2, Y3, Y4]}'"
@@ -15,7 +13,7 @@ def test_lineplot():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -26,7 +24,7 @@ def test_lineplot_with_title():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -38,7 +36,7 @@ def test_lineplot_with_title2():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -51,7 +49,7 @@ def test_lineplot_manual_axis():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -62,7 +60,7 @@ def test_area():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -73,7 +71,7 @@ def test_area():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -83,7 +81,7 @@ def test_stacked_bars():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -95,7 +93,7 @@ def test_scatter():
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -104,5 +102,29 @@ def test_bars_with_maxerror():
     args = """ --plot '{kind: b, datafile: data/progress_estimation.csv, index: 0, cols: [1,2], ecols: [3,4], errorbars: max, labels: [ASM,PTCA], ylabel: "Progress Estimation Error", legend_options: {loc: 9, frameon: False, ncol: 2}, xlabel: Number of applications, xrot: 0, ymax: 0.25, ypercent: True}' --size 4 2.5 --dpi 100"""
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_yaxes, args.rect)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
+
+
+@image_comparison(baseline_images=['t9'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_equalize_xy1():
+    args =  " --plot '{kind: l, index: 0, cols: [1], datafile: data/A.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y]}'"
+    args += " --plot '{kind: l, index: 0, cols: [1], xmax: 35, datafile: data/a.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y cutted]}'"
+    args += " -g 1 2 --size 4 2.5 --dpi 100 --equal-xaxes 0 1 --equal-yaxes 0 1 "
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
+
+
+@image_comparison(baseline_images=['t10'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_equalize_xy2():
+    args =  " --plot '{kind: l, index: 0, cols: [1], datafile: data/A.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y]}'"
+    args += " --plot '{kind: l, index: 0, cols: [1], datafile: data/a.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y cutted]}'"
+    args += " -g 1 2 --size 4 2.5 --dpi 100 --equal-xaxes 0 1 --equal-yaxes 0 1 "
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
