@@ -128,3 +128,13 @@ def test_equalize_xy2():
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
     simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
+
+
+@image_comparison(baseline_images=['t11'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_vh_lines():
+    args = """--plot '{kind: l, index: 0, cols: [1], datafile: data/A.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1], hl: [3.2, 3.4]}' --plot '{kind: l, index: 0, cols: [1], datafile: data/a.csv, hl: [[4, {lw: 2, ls: ":", color: "r"}], [3.4, {lw: 0.5, ls: "--", color: "g"}]], vl: 2, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1 cutted]}' -g 1 2 --size 4 2.5 --dpi 100 --equal-xaxes 0 1  --equal-yaxes 0 1"""
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]

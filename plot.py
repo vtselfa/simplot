@@ -93,6 +93,9 @@ class Plot:
     # Horizontal lines
     hl = []
 
+    # Vertical lines
+    vl = []
+
 
     def __init__(self):
         # assert self.cols, colored("You shold provide some cols to plot e.g. --plot '{... cols: [1,2,3], ...}'", "red")
@@ -144,6 +147,9 @@ class Plot:
 
     # Plot horizontal line
     def plot_hl(self):
+        if not self.hl:
+            return
+
         ax = plt.gca()
         if not isinstance(self.hl, list) or isinstance(self.hl[1], dict):
             self.hl = [self.hl]
@@ -161,6 +167,28 @@ class Plot:
             x = ax.get_xlim()
             plt.plot((x[0], x[1]), (y, y), **prop)
 
+
+    # Plot vertical line
+    def plot_vl(self):
+        if not self.vl:
+            return
+
+        ax = plt.gca()
+        if not isinstance(self.vl, list) or isinstance(self.vl[1], dict):
+            self.vl = [self.vl]
+
+        for line in self.vl:
+            prop = {"color": "k", "lw" : 1}
+            if isinstance(line, (list, tuple)):
+                assert(len(line) == 2)
+                assert(isinstance(line[1], dict))
+                x = float(line[0])
+                prop.update(line[1])
+            else:
+                x = float(line)
+
+            y = ax.get_ylim()
+            plt.plot((x, x), (y[0], y[1]), **prop)
 
 
     def plot(self):
@@ -217,10 +245,6 @@ class Plot:
             ax.xaxis.grid(self.xgrid)
         if self.ygrid != None:
             ax.yaxis.grid(self.ygrid)
-
-        # Draw horizontal lines
-        if self.hl:
-            self.plot_hl()
 
         # Remove legend
         if self.legend_options == {}:

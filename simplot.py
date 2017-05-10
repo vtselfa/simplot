@@ -116,27 +116,40 @@ def create_figures(grids, size, dpi):
 def plot_data(figs, axes, plots, titles, equal_xaxes_groups, equal_yaxes_groups, rect):
     assert titles == [] or len(figs) == len(titles), colored("If --title is used, a title for each figure must be provided", 'red')
     axnum = 0
-    for p in plots:
-        if p["kind"] in ["bars", "b", "stackedbars", "sb"]:
-            p = plot.BarPlot(**p)
-        elif p["kind"] == "box":
-            p = plot.BoxPlot(**p)
+    for p, desc in enumerate(plots):
+        if desc["kind"] in ["bars", "b", "stackedbars", "sb"]:
+            plots[p] = plot.BarPlot(**desc)
+        elif desc["kind"] == "box":
+            plots[p] = plot.BoxPlot(**desc)
         else:
-            p = plot.LinePlot(**p)
+            plots[p] = plot.LinePlot(**desc)
+
+        obj = plots[p]
 
         # Set ax to plot into
-        if p.axnum != None:
-            ax = axes[p.axnum]
+        if obj.axnum != None:
+            ax = axes[obj.axnum]
         else:
             assert len(axes) > axnum, colored("Too many plots for this grid", 'red')
             ax = axes[axnum]
             axnum += 1
 
+        # Store ax for future use
+        obj.ax = ax
+
         plt.sca(ax)
         ax.autoscale(enable=True, axis='both', tight=True)
-        p.plot()
+        obj.plot()
+
     equalize_xaxis(axes, equal_xaxes_groups)
     equalize_yaxis(axes, equal_yaxes_groups)
+
+    # Plot lines here because equalize axis may have modified the plots
+    for obj in plots:
+        plt.sca(obj.ax)
+        obj.plot_hl()
+        obj.plot_vl()
+
     for fig, title in it.zip_longest(figs, titles):
         if title:
             fig.suptitle(title)
