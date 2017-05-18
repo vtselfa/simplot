@@ -395,12 +395,19 @@ class LinePlot(Plot):
     xmin = None # None / Float
     xmax = None # None / Float
 
+    # Columns to use for errorbars
+    ecols = [] # List of ints
 
     def __init__(self, **kwds):
         self.check_and_set(kwds)
         self.prepare_data()
 
-        super(LinePlot, self).__init__()
+        self.ecolumns = [self.df.columns[ecol] for ecol in self.ecols]
+
+        super().__init__()
+
+        assert not self.ecols or len(self.cols) == len(self.ecols), \
+                colored("You have {} cols but {} error cols: error cols shold be 0, equal or double the number of cols".format(len(self.cols), len(self.ecols)), "red")
 
 
     def plot_area(self, stacked=False):
@@ -423,6 +430,10 @@ class LinePlot(Plot):
     def plot_line(self):
         ax = plt.gca()
         columns = self.columns
+        ecolumns = self.ecolumns
+        if not ecolumns:
+            ecolumns = [None] * len(columns)
+
         style_props = ["color", "linewidth", "linestyle", "marker", "markersize", "markevery", "markeredgecolor", "markeredgewidth"]
 
         # Convert all the style propierties into cycle iterators and set them to the correct starting point
@@ -442,10 +453,23 @@ class LinePlot(Plot):
         for _ in range(self.starting_style):
             next(style_cycler)
 
-        for column, sty in zip(columns, style_cycler):
-            serie = self.df[column]
-            serie = serie.dropna()
-            line, = plt.plot(serie.index.values, serie.tolist(), label=self.colabel.get(column, column), axes=ax, **sty)
+        for column, ecolumn, sty in zip(columns, ecolumns, style_cycler):
+            if ecolumn:
+                data = self.df[[column, ecolumn]]
+            else:
+                data = self.df[column]
+
+            data = data.dropna()
+            x = data.index.values
+
+            if ecolumn:
+                yerr = data[ecolumn].tolist()
+                y = data[column].tolist()
+            else:
+                yerr = None
+                y = data.tolist()
+
+            plt.errorbar(x, y, yerr=yerr, label=self.colabel.get(column, column), axes=ax, **sty)
 
         # Legend
         handles, labels = ax.get_legend_handles_labels()
