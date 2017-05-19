@@ -19,7 +19,7 @@
 
 import argparse
 import itertools as it
-import matplotlib as mpl;
+import matplotlib as mpl; mpl.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.style
 import numpy as np
@@ -69,6 +69,12 @@ def parse_args(args=None):
     if args.grid == []:
         args.grid = [(1,1)]
 
+    return args
+
+
+def default_args():
+    args = parse_args("--plot {}".split())
+    args.plot = list()
     return args
 
 

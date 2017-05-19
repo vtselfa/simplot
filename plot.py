@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
+import random
 import sys
 import traceback
 
@@ -165,7 +166,7 @@ class Plot:
                 y = float(line)
 
             x = ax.get_xlim()
-            plt.plot((x[0], x[1]), (y, y), **prop)
+            plt.errorbar((x[0], x[1]), (y, y), **prop)
 
 
     # Plot vertical line
@@ -188,7 +189,9 @@ class Plot:
                 x = float(line)
 
             y = ax.get_ylim()
-            plt.plot((x, x), (y[0], y[1]), **prop)
+            mid = (y[0] + y[1]) / 2
+            mid += mid * random.uniform(-0.05, 0.05)
+            plt.errorbar((x, x, x), [y[0], mid, y[1]], **prop)
 
 
     def plot(self):
@@ -384,6 +387,7 @@ class LinePlot(Plot):
     kind = "line"
 
     linewidth = 2
+    elinewidth = 1
     linestyle = None
     marker = None
     markersize = 6
@@ -434,7 +438,7 @@ class LinePlot(Plot):
         if not ecolumns:
             ecolumns = [None] * len(columns)
 
-        style_props = ["color", "linewidth", "linestyle", "marker", "markersize", "markevery", "markeredgecolor", "markeredgewidth"]
+        style_props = ["color", "linewidth", "linestyle", "marker", "markersize", "markevery", "markeredgecolor", "markeredgewidth", "elinewidth"]
 
         # Convert all the style propierties into cycle iterators and set them to the correct starting point
         style_cycler = None
