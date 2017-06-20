@@ -138,3 +138,12 @@ def test_vh_lines():
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
     simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
+
+@image_comparison(baseline_images=['line_with_errorbars'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_vh_lines():
+    args = """--plot '{kind: l, index: 0, cols: [1], ecols: [2], datafile: data/err.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1], ymax: 5}' --size 4 2.5 --dpi 100 --title 'Super nice title' """
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
