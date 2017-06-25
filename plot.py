@@ -395,6 +395,9 @@ class LinePlot(Plot):
     markeredgecolor = 'k'
     markeredgewidth = 0.5
 
+    # Put Y scale on the right
+    yright = False
+
     # Limits
     xmin = None # None / Float
     xmax = None # None / Float
@@ -433,6 +436,14 @@ class LinePlot(Plot):
 
     def plot_line(self):
         ax = plt.gca()
+        # Put Y axis on the right
+        if self.yright:
+            if not ax.has_data():
+                ax.get_yaxis().set_visible(False)
+            ax = ax.twinx()
+        else:
+            ax.get_yaxis().set_visible(True)
+
         columns = self.columns
         ecolumns = self.ecolumns
         if not ecolumns:
@@ -496,7 +507,7 @@ class LinePlot(Plot):
             if self.kind in ["dashedline", "dl", "dashedmarkedline", "markeddashedline", "mdl", "dml"]:
                 valid = True
                 if not self.linestyle:
-                    self.linestyle = ('-', '--  ', '--- ', '- ')
+                    self.linestyle = ['-', '--', '-.', ':']
 
             if self.kind in ["markedline", "ml", "dashedmarkedline", "markeddashedline", "mdl", "dml"]:
                 valid = True

@@ -147,3 +147,41 @@ def test_vh_lines():
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
     simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
+
+
+@image_comparison(baseline_images=['line_yright'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_lineplot_yright():
+    args =  " --plot '{kind: l, index: 0, cols: [1], datafile: data/stp.csv, ylabel: Hello from the left, xlabel: Xlabel, labels: [Y1]}'"
+    args += """ --plot '{axnum: 0, yright: True, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/stp.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Y2], legend_options: {loc: 4}}'"""
+    args += " --plot '{kind: l, index: 0, cols: [3], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3]}'"
+    args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
+
+
+@image_comparison(baseline_images=['line_yright2'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_lineplot_yright2():
+    args = """ --plot '{yright: True, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/stp.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Y2], legend_options: {loc: 4}}'"""
+    args += " --plot '{kind: l, index: 0, cols: [3], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3]}'"
+    args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
+
+
+@image_comparison(baseline_images=['line_yright3'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_lineplot_yright3():
+    args =  " --plot '{kind: l, yright: True, index: 0, cols: [1], datafile: data/stp.csv, ylabel: Hello from the left, xlabel: Xlabel, labels: [Y1]}'"
+    args += """ --plot '{axnum: 0, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/stp.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Y2], legend_options: {loc: 4}}'"""
+    args += " --plot '{kind: l, index: 0, cols: [3], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3]}'"
+    args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
