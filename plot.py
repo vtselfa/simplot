@@ -4,6 +4,7 @@ import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
 import random
+import re
 import sys
 import traceback
 
@@ -88,6 +89,7 @@ class Plot:
     index = None # int
 
     colormap = None # Colormap to pick colors from
+    numcolors = None
     color = None # Colors to override default style or colors from colormap
     starting_style = 0 # The colors and other propierties are cycled, this allows to pick a different starting style
 
@@ -124,14 +126,21 @@ class Plot:
         if self.colormap:
             ax = plt.gca()
             cmap = plt.get_cmap(self.colormap)
-            cmcolor = [cmap(c / (len(self.cols) + self.starting_style), 1) for c in range(len(self.cols) + self.starting_style)]
-
+            numcolors = len(self.cols)
+            if self.numcolors:
+                numcolors = self.numcolors
+            cmcolor = [cmap(c / numcolors, 1) for c in range(numcolors)]
             # Override colors
+            color = list(cmcolor)
             if self.color:
                 for i, (c1, c2) in enumerate(zip(self.color, cmcolor)):
                     if (c1):
-                        cmcolor[i] = c1
-            self.color = cmcolor
+                        if (re.match(r'[dD][0-9]', c1)):
+                            pos = int(c1[1:])
+                            color[i] = cmcolor[pos]
+                        else:
+                            color[i] = c1
+            self.color = color
 
 
     def check_and_set(self, kwds):
