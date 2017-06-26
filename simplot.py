@@ -140,15 +140,12 @@ def plot_data(figs, axes, plots, titles, equal_xaxes_groups, equal_yaxes_groups,
             ax = axes[axnum]
             axnum += 1
 
-        # Store ax for future use
-        obj.ax = ax
-
         plt.sca(ax)
         ax.autoscale(enable=True, axis='both', tight=True)
         obj.plot()
 
-    equalize_xaxis(axes, equal_xaxes_groups)
-    equalize_yaxis(axes, equal_yaxes_groups)
+    equalize_xaxis(plots, equal_xaxes_groups)
+    equalize_yaxis(plots, equal_yaxes_groups)
 
     # Plot lines here because equalize axis may have modified the plots
     for obj in plots:
@@ -165,11 +162,11 @@ def plot_data(figs, axes, plots, titles, equal_xaxes_groups, equal_yaxes_groups,
 
 
 # Force the same ymin and ymax values for multiple plots
-def equalize_yaxis(axes, groups):
+def equalize_yaxis(plots, groups):
     for group in groups:
         ymin = float("+inf")
         ymax = float("-inf")
-        group = [axes[i] for i in group] # Translate IDs to axes
+        group = [plots[i].ax for i in group] # Translate IDs to axes
         for ax in group:
             y1, y2 = ax.get_ylim()
             ymin = min(ymin, y1)
@@ -179,11 +176,11 @@ def equalize_yaxis(axes, groups):
 
 
 # Force the same ymin and ymax values for multiple plots
-def equalize_xaxis(axes, groups):
+def equalize_xaxis(plots, groups):
     for group in groups:
         xmin = float("+inf")
         xmax = float("-inf")
-        group = [axes[i] for i in group] # Translate IDs to axes
+        group = [plots[i].ax for i in group] # Translate IDs to axes
         for ax in group:
             x1, x2 = ax.get_xlim()
             xmin = min(xmin, x1)

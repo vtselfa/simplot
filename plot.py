@@ -99,6 +99,12 @@ class Plot:
     # Vertical lines
     vl = []
 
+    # Ax this is plotted into
+    ax = None
+
+    # Put Y scale on the right
+    yright = False
+
 
     def __init__(self):
         # assert self.cols, colored("You shold provide some cols to plot e.g. --plot '{... cols: [1,2,3], ...}'", "red")
@@ -108,6 +114,8 @@ class Plot:
         # If no cols are specified, we assume all but the index
         if not self.cols:
             self.cols = [i for i in range(len(self.df.columns)) if i != self.index]
+
+        ax = plt.gca()
 
         # Map col to label
         self.colabel = dict()
@@ -210,6 +218,7 @@ class Plot:
         self.plotted = True
 
         ax = plt.gca()
+        self.ax = ax
 
         # Labels
         ax.set_title(self.title)
@@ -404,9 +413,6 @@ class LinePlot(Plot):
     markeredgecolor = 'k'
     markeredgewidth = 0.5
 
-    # Put Y scale on the right
-    yright = False
-
     # Limits
     xmin = None # None / Float
     xmax = None # None / Float
@@ -428,7 +434,7 @@ class LinePlot(Plot):
 
     def plot_area(self, stacked=False):
         # Plot
-        ax = plt.gca()
+        ax = self.ax
         columns = self.columns
 
         legend = None
@@ -444,15 +450,7 @@ class LinePlot(Plot):
 
 
     def plot_line(self):
-        ax = plt.gca()
-        # Put Y axis on the right
-        if self.yright:
-            if not ax.has_data():
-                ax.get_yaxis().set_visible(False)
-            ax = ax.twinx()
-        else:
-            ax.get_yaxis().set_visible(True)
-
+        ax = self.ax
         columns = self.columns
         ecolumns = self.ecolumns
         if not ecolumns:
@@ -501,8 +499,17 @@ class LinePlot(Plot):
 
 
     def plot(self):
-        valid = False
+        # Put Y axis on the right
+        ax = plt.gca()
+        if self.yright:
+            if not ax.has_data():
+                ax.get_yaxis().set_visible(False)
+            ax = ax.twinx()
+        else:
+            ax.get_yaxis().set_visible(True)
+        self.ax = ax
 
+        valid = False
         if self.kind == "area" or self.kind == "a":
             valid = True
             self.plot_area()
