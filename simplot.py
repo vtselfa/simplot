@@ -61,7 +61,7 @@ def parse_args(args=None):
     if args.plot_base:
         plots = list()
         for p in args.plot:
-            p = merge_dict(dict(args.plot_base), p)
+            p = merge_dicts(dict(args.plot_base), p)
             plots.append(p)
         args.plot = plots
 
@@ -91,7 +91,7 @@ def merge_dicts(a, b, path=None):
     for key in b:
         if key in a:
             if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge(a[key], b[key], path + [str(key)])
+                merge_dicts(a[key], b[key], path + [str(key)])
             else:
                 a[key] = b[key]
         else:
