@@ -130,6 +130,8 @@ class Plot:
         # Set index
         self.df = self.df.set_index(self.df.columns[self.index])
 
+        assert not isinstance(self.color, str), colored("Color has to be an iterable of strings, not '{}'".format(self.color), 'red')
+
         # Use colors from colormap
         if self.colormap:
             ax = plt.gca()
@@ -143,9 +145,23 @@ class Plot:
             if self.color:
                 for i, (c1, c2) in enumerate(zip(self.color, cmcolor)):
                     if (c1):
-                        if (re.match(r'[dD][0-9]', c1)):
+                        if (re.match(r'[dD][0-9]', c1)): # Use d0, d1, d2,... to refer to the colors in the colormap in positional order
                             pos = int(c1[1:])
                             color[i] = cmcolor[pos]
+                        else:
+                            color[i] = c1
+            self.color = color
+
+        # Use default colors, but override them with the colors in self.color
+        else:
+            default_color = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            color = list(default_color)
+            if self.color:
+                for i, (c1, c2) in enumerate(zip(self.color, default_color)):
+                    if (c1):
+                        if (re.match(r'[dD][0-9]', c1)): # Use d0, d1, d2,... to refer to default colors in positional order
+                            pos = int(c1[1:])
+                            color[i] = default_color[pos]
                         else:
                             color[i] = c1
             self.color = color
@@ -182,6 +198,10 @@ class Plot:
             else:
                 y = float(line)
 
+            if re.match(r'[dD][0-9]', prop["color"]): # Use d0, d1, d2,... to refer to self.color in positional order
+                pos = int(prop["color"][1:])
+                prop["color"] = self.color[pos]
+
             x = ax.get_xlim()
             plt.errorbar((x[0], x[1]), (y, y), **prop)
 
@@ -204,6 +224,10 @@ class Plot:
                 prop.update(line[1])
             else:
                 x = float(line)
+
+            if re.match(r'[dD][0-9]', prop["color"]): # Use d0, d1, d2,... to refer to self.color in positional order
+                pos = int(prop["color"][1:])
+                prop["color"] = self.color[pos]
 
             y = ax.get_ylim()
             mid = (y[0] + y[1]) / 2

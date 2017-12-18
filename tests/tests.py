@@ -43,7 +43,7 @@ def test_lineplot_with_title2():
 @image_comparison(baseline_images=['t4'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_lineplot_manual_axis():
     args =  " --plot '{kind: l, index: 0, cols: [1,2], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1, Y2]}'"
-    args += " --plot '{axnum: 0, kind: l, index: 0, cols: [3,4], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3, Y4]}'"
+    args += " --plot '{axnum: 0, color: [d2, d3], kind: l, index: 0, cols: [3,4], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3, Y4]}'"
     args += " --plot '{kind: l, index: 0, cols: [1,2,3,4], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1, Y2, Y3, Y4]}'"
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
@@ -190,9 +190,21 @@ def test_lineplot_yright3():
 @image_comparison(baseline_images=['test_line_yright_equalize_yaxis'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_line_yright_equalize_yaxis():
     args =  " --plot '{kind: l, yright: True, index: 0, cols: [2], datafile: data/stp.csv, ylabel: Hello from the left, xlabel: Xlabel, labels: [Y1]}'"
-    args += """ --plot '{axnum: 0, kind: dl, linestyle: ":", color: 'C1', index: 0, cols: [1], datafile: data/a.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Y2], legend_options: {loc: 4}}'"""
+    args += """ --plot '{axnum: 0, kind: dl, linestyle: ":", color: ['C1'], index: 0, cols: [1], datafile: data/a.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Y2], legend_options: {loc: 4}}'"""
     args += " --plot '{kind: l, index: 0, cols: [3], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3]}'"
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title' --equal-yaxes 0 1 2"
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
+
+
+@image_comparison(baseline_images=['test_hl_colors'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_line_yright_equalize_yaxis():
+    args =  " --plot '{kind: l, index: 0, cols: [1, 2, 3], datafile: data/olines.csv, ylabel: Some lines, xlabel: X label, labels: [A1, A2, A3], hl: [[1, {color: d0}], [2, {color: d1}], [3, {color: d2}]]}'"
+    args += " --plot '{ymin: 0, axnum: 0, kind: l, color: [d3, d4, d5], index: 0, cols: [4, 5, 6], datafile: data/olines.csv, labels: [B1, B2, B3], hl: [[4, {color: d3}], [5, {color: d4}], [6, {color: d5}]]}'"
+    args += " -g 1 1 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
