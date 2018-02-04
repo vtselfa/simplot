@@ -86,7 +86,7 @@ class Plot:
     xminorlocator = None
 
     # Index column
-    index = None # int
+    index = None # int or list
 
     colormap = None # Colormap to pick colors from
     numcolors = None
@@ -128,7 +128,9 @@ class Plot:
         self.columns = [self.df.columns[col] for col in self.cols]
 
         # Set index
-        self.df = self.df.set_index(self.df.columns[self.index])
+        if not isinstance(self.index, list):
+            self.index = [self.index]
+        self.df = self.df.set_index([self.df.columns[index] for index in self.index])
 
         assert not isinstance(self.color, str), colored("Color has to be an iterable of strings, not '{}'".format(self.color), 'red')
 
@@ -333,6 +335,7 @@ class BarPlot(Plot):
 
     hatches = ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
 
+    width = 0.35
 
     def __init__(self, **kwds):
         self.check_and_set(kwds)
@@ -345,6 +348,67 @@ class BarPlot(Plot):
 
         assert not self.ecols or len(self.cols) == len(self.ecols) or 2 * len(self.cols) == len(self.ecols),\
                 colored("You have {} cols but {} error cols: error cols shold be 0, equal or double the number of cols".format(len(self.cols), len(self.ecols)), "red")
+
+
+    def plot_multiindexed_bars(self):
+        def compute_bar_locations(df, width):
+            def sep(width, level):
+                return width * (1.75 * level + 0.5)
+            result = []
+            all_values = []
+            for l, level in enumerate(reversed(df.index.labels)):
+                values = []
+                prev = level[0]
+                for e in level:
+                    if e != prev:
+                        values.append(sep(width, l))
+                    else:
+                        values.append(0)
+                    prev = e
+                all_values.append(np.array(values))
+                result.append(np.cumsum(values))
+            result = np.array(result)
+            indexes = np.sum(result, axis=0)
+            for i in range(len(indexes)):
+               indexes[i] += width * i
+            return indexes
+
+
+        def xtick_loc_per_level(df, level, bar_positions):
+            indexes = bar_positions
+            canvis = [-1] + list(np.where(np.diff(df.index.labels[level]) != 0)[0]) + [len(indexes) - 1]
+            locations = []
+            for i in range(len(canvis) - 1):
+                act = canvis[i]
+                seg = canvis[i + 1]
+                start = indexes[act + 1]
+                end = indexes[seg]
+                locations.append((start + end) / 2)
+            return locations
+
+        ax = plt.gca()
+        ind = compute_bar_locations(self.df, self.width)
+        values = self.df[self.columns]
+        values = values.cumsum(axis=1) # To make them "stacked"
+        for col in values:
+            bars = plt.bar(ind, values[col], self.width)
+
+        assert(len(values.index.levels) <= 2)
+        ax.set_xticks(xtick_loc_per_level(values, 0, ind), minor=True)
+        ax.set_xticks(xtick_loc_per_level(values, 1, ind))
+
+        print(values)
+        print(values.index)
+
+        idx = values.index
+
+        changes = [0] + list(np.where(np.diff(values.index.labels[0]) != 0)[0] + 1)
+        ax.set_xticklabels([idx.levels[0][idx.labels[l]] for l in changes], minor=True)
+
+        changes = [0] + list(np.where(np.diff(values.index.labels[1]) != 0)[0] + 1)
+        ax.set_xticklabels([idx.levels[1][idx.labels[l]] for l in changes])
+
+        ax.tick_params(which='minor', pad=15)
 
 
     def plot_bars(self, stacked=False):
@@ -420,6 +484,8 @@ class BarPlot(Plot):
     def plot(self):
         if self.kind in ["sb", "stackedbars", "sbars"]:
             self.plot_bars(stacked=True)
+        elif self.kind == "mibars":
+            self.plot_multiindexed_bars()
         else:
             self.plot_bars()
         super().plot()

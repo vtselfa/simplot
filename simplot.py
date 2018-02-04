@@ -123,7 +123,7 @@ def plot_data(figs, axes, plots, titles, equal_xaxes_groups, equal_yaxes_groups,
     assert titles == [] or len(figs) == len(titles), colored("If --title is used, a title for each figure must be provided", 'red')
     axnum = 0
     for p, desc in enumerate(plots):
-        if desc["kind"] in ["bars", "b", "stackedbars", "sb"]:
+        if desc["kind"] in ["bars", "b", "stackedbars", "sb", "mibars"]:
             plots[p] = plot.BarPlot(**desc)
         elif desc["kind"] == "box":
             plots[p] = plot.BoxPlot(**desc)
