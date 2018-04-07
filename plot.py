@@ -333,9 +333,9 @@ class BarPlot(Plot):
     # Errorbars {'min', 'max', 'both'}
     errorbars = "both"
 
-    hatches = ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
+    hatch = [] #('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
 
-    width = 0.35
+    width = 1
 
     def __init__(self, **kwds):
         self.check_and_set(kwds)
@@ -348,6 +348,97 @@ class BarPlot(Plot):
 
         assert not self.ecols or len(self.cols) == len(self.ecols) or 2 * len(self.cols) == len(self.ecols),\
                 colored("You have {} cols but {} error cols: error cols shold be 0, equal or double the number of cols".format(len(self.cols), len(self.ecols)), "red")
+
+    def make_style_cycler(self):
+        style_props = ["color", "hatch"]
+
+        # Convert all the style propierties into cycle iterators and set them to the correct starting point
+        style_cycler = None
+        for prop in style_props:
+            value = getattr(self, prop)
+            if value == None:
+                continue
+            if not isinstance(value, list):
+                value = [value]
+            prop_cycler = cycler(prop, value) * (len(self.columns) + self.starting_style)
+            if not style_cycler:
+                style_cycler = prop_cycler
+            else:
+                style_cycler += prop_cycler
+
+        for _ in range(self.starting_style):
+            next(style_cycler)
+
+        return style_cycler
+
+
+    def plot_legend(self, df):
+        ax = plt.gca()
+        if len(df.columns) > 1:
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(handles, labels, **self.legend_options)
+
+
+    def plot_bars(self):
+        def compute_bar_locations(df, width, bar_num):
+            def sep(width):
+                return width * 0.5
+
+            block_size = width * len(df.columns) + sep(width) # Size of a group of bars + the space to the right
+            indexes = np.array(range(len(df)))
+            indexes = indexes * block_size
+            indexes = indexes + (width * bar_num) # bar_num 0, correstponds to the first column, 1 to the second, etc.
+            return indexes
+
+        style_cycler = self.make_style_cycler()
+
+        ax = plt.gca()
+        values = self.df[self.columns]
+
+        for c, (col, sty) in enumerate(zip(values.columns, style_cycler)):
+            ind = compute_bar_locations(values, self.width, c)
+            bars = plt.bar(ind, values[col], self.width, label=self.colabel.get(col, col), **sty)
+
+        ind = compute_bar_locations(values, self.width, len(values.columns) / 2 - 0.5) # Positions of the xticks
+        ax.set_xticks(ind)
+        ax.set_xticklabels(values.index.values)
+
+        self.plot_legend(values)
+
+
+    def plot_stacked_bars(self):
+        def compute_bar_locations(df, width):
+            def sep(width):
+                return width * 0.5
+
+            block_size = width + sep(width) # Size of a group of bars + the space to the right
+            indexes = np.array(range(len(df)))
+            indexes = indexes * block_size
+            indexes = indexes + width / 2
+            return indexes
+
+        style_cycler = self.make_style_cycler()
+
+        ax = plt.gca()
+        values = self.df[self.columns]
+        values = values.cumsum(axis=1) # To make them "stacked"
+
+        ind = compute_bar_locations(values, self.width)
+
+        # To be able to reverse the styles
+        styles = []
+        for s, sty in enumerate(style_cycler):
+            if s == len(values.columns):
+                break
+            styles.append(sty)
+
+        for col, sty in zip(reversed(values.columns), reversed(styles)):
+            bars = plt.bar(ind, values[col], self.width, label=self.colabel.get(col, col), **sty)
+
+        ax.set_xticks(ind)
+        ax.set_xticklabels(values.index.values)
+
+        self.plot_legend(values)
 
 
     def plot_multiindexed_bars(self):
@@ -373,7 +464,6 @@ class BarPlot(Plot):
                indexes[i] += width * i
             return indexes
 
-
         def xtick_loc_per_level(df, level, bar_positions):
             indexes = bar_positions
             canvis = [-1] + list(np.where(np.diff(df.index.labels[level]) != 0)[0]) + [len(indexes) - 1]
@@ -390,28 +480,27 @@ class BarPlot(Plot):
         ind = compute_bar_locations(self.df, self.width)
         values = self.df[self.columns]
         values = values.cumsum(axis=1) # To make them "stacked"
-        for col in values:
-            bars = plt.bar(ind, values[col], self.width)
+        for col in reversed(values.columns):
+            bars = plt.bar(ind, values[col], self.width, label=self.colabel.get(col, col))
 
         assert(len(values.index.levels) <= 2)
         ax.set_xticks(xtick_loc_per_level(values, 0, ind), minor=True)
         ax.set_xticks(xtick_loc_per_level(values, 1, ind))
 
-        print(values)
-        print(values.index)
-
         idx = values.index
 
         changes = [0] + list(np.where(np.diff(values.index.labels[0]) != 0)[0] + 1)
-        ax.set_xticklabels([idx.levels[0][idx.labels[l]] for l in changes], minor=True)
+        ax.set_xticklabels([idx.levels[0][idx.labels[0][l]] for l in changes], minor=True)
 
         changes = [0] + list(np.where(np.diff(values.index.labels[1]) != 0)[0] + 1)
-        ax.set_xticklabels([idx.levels[1][idx.labels[l]] for l in changes])
+        ax.set_xticklabels([idx.levels[1][idx.labels[1][l]] for l in changes])
 
-        ax.tick_params(which='minor', pad=15)
+        ax.tick_params(which='minor', pad=20, length=0)
+
+        self.plot_legend(values)
 
 
-    def plot_bars(self, stacked=False):
+    def plot_bars_old(self, stacked=False):
         ax = plt.gca()
         values = self.df[self.columns]
         errors = None
@@ -483,7 +572,7 @@ class BarPlot(Plot):
 
     def plot(self):
         if self.kind in ["sb", "stackedbars", "sbars"]:
-            self.plot_bars(stacked=True)
+            self.plot_stacked_bars()
         elif self.kind == "mibars":
             self.plot_multiindexed_bars()
         else:
