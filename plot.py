@@ -97,8 +97,8 @@ class Plot:
     # See http://matplotlib.org/api/ticker_api.html
     ymajorlocator = None
     xmajorlocator = None
-    yminorlocator = None
-    xminorlocator = None
+    yminorlocator = None # "AutoMinorLocator" should be a good choice
+    xminorlocator = None # "AutoMinorLocator" should be a good choice
 
     # Index column
     index = None # int or list
@@ -287,7 +287,7 @@ class Plot:
         # X/Y tick locators
         for setter, locator in [(ax.xaxis.set_major_locator, self.xmajorlocator), (ax.yaxis.set_major_locator, self.ymajorlocator), (ax.xaxis.set_minor_locator, self.xminorlocator), (ax.yaxis.set_minor_locator, self.yminorlocator)]:
             if locator:
-                if isinstance(locator, list):
+                if isinstance(locator, (list, tuple)):
                     assert(len(locator) == 2)
                     loc = locator[0]
                     args = locator[1]
