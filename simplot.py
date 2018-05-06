@@ -61,7 +61,7 @@ def parse_args(args=None):
     if args.plot_base:
         plots = list()
         for p in args.plot:
-            p = merge_dicts(dict(args.plot_base), p)
+            p = plot.merge_dicts(dict(args.plot_base), p)
             plots.append(p)
         args.plot = plots
 

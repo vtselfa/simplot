@@ -26,6 +26,20 @@ def read_data(datafile):
     return df
 
 
+def merge_dicts(a, b, path=None):
+    "merges b into a"
+    if path is None: path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge_dicts(a[key], b[key], path + [str(key)])
+            else:
+                a[key] = b[key]
+        else:
+            a[key] = b[key]
+    return a
+
+
 #
 # Class that describes one plot
 #
@@ -55,7 +69,8 @@ class Plot:
     labels = None  # List of strings
 
     # Arguments passed to the legend constructor
-    legend_options = {"loc": "best"} # {} -> No legend
+    default_legend_options = {"loc": "best", "frameon": False} # {} -> No legend
+    legend_options = {}
 
     # Rotation degrees for the x labels
     xrot = None
@@ -167,6 +182,11 @@ class Plot:
                         else:
                             color[i] = c1
             self.color = color
+
+        # Legend options
+        lo = dict(self.default_legend_options)
+        merge_dicts(lo, self.legend_options)
+        self.legend_options = lo
 
 
     def check_and_set(self, kwds):
