@@ -151,8 +151,8 @@ def test_vh_lines():
 
 @image_comparison(baseline_images=['line_yright'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_lineplot_yright():
-    args =  " --plot '{kind: l, index: 0, colormap: cubehelix, numcolors: 3, color: [D1], cols: [1], datafile: data/stp.csv, ylabel: Hello from the left, xlabel: Xlabel, labels: [Yleft]}'"
-    args += """ --plot '{axnum: 0, colormap: cubehelix, numcolors: 3, color: [D2], yright: True, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/stp.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Yright], legend_options: {loc: 4}}'"""
+    args =  " --plot '{kind: l, index: 0, colormap: cubehelix, numcolors: 3, color: [D1], cols: [1], datafile: data/short1.csv, ylabel: Hello from the left, xlabel: Xlabel, labels: [Yleft]}'"
+    args += """ --plot '{axnum: 0, colormap: cubehelix, numcolors: 3, color: [D2], yright: True, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/short2.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Yright], legend_options: {loc: 4}}'"""
     args += " --plot '{kind: l, index: 0, cols: [3], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3]}'"
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
@@ -166,7 +166,7 @@ def test_lineplot_yright():
 def test_lineplot_yright2():
     args = """ --plot '{yright: True, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/stp.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Y2], legend_options: {loc: 4}}'"""
     args += " --plot '{kind: l, index: 0, cols: [3], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3]}'"
-    args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
+    args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title' --equal-yaxes 0 1"
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
@@ -190,7 +190,7 @@ def test_lineplot_yright3():
 @image_comparison(baseline_images=['line_yright_alone'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_lineplot_yright3():
     args =  " --plot '{kind: l, yright: True, index: 0, cols: [1], datafile: data/stp.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Yright]}'"
-    args += " -g 1 1 --size 4 2.5 --dpi 100 --title 'Super nice title'"
+    args += " -g 1 1 --size 4 2.5 --title 'Data only on the right Y axis'"
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)

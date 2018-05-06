@@ -105,7 +105,6 @@ def create_figures(grids, size, dpi):
         axes += axs
         for ax in axes:
             ax = ax.twinx()
-            ax.get_yaxis().set_visible(False)
             axes_r.append(ax)
     return figures, axes, axes_r
 
@@ -113,6 +112,11 @@ def create_figures(grids, size, dpi):
 # Iterate plots and plot
 def plot_data(figs, axes, axes_r, plots, titles, equal_xaxes_groups, equal_yaxes_groups, rect):
     assert titles == [] or len(figs) == len(titles), colored("If --title is used, a title for each figure must be provided", 'red')
+
+    # An axis is set visible when/if something is plotted on it
+    for ax in axes + axes_r:
+        ax.get_yaxis().set_visible(False)
+
     axnum = 0
     for p, desc in enumerate(plots):
         if desc["kind"] in ["bars", "b", "stackedbars", "sb", "mibars"]:
@@ -138,14 +142,12 @@ def plot_data(figs, axes, axes_r, plots, titles, equal_xaxes_groups, equal_yaxes
                 ax = axes[axnum]
             axnum += 1
 
+        # Since this ax has something on it, it's made visible
         ax.get_yaxis().set_visible(True)
 
         plt.sca(ax)
         ax.autoscale(enable=True, axis='both', tight=True)
         obj.plot()
-
-    equalize_xaxis(plots, equal_xaxes_groups)
-    equalize_yaxis(plots, equal_yaxes_groups)
 
     # When having two Y axis the legend of the left axis my be drawn below the data. This is a workaround
     for ax, ax_r in zip(axes, axes_r):
@@ -154,6 +156,9 @@ def plot_data(figs, axes, axes_r, plots, titles, equal_xaxes_groups, equal_yaxes
             if l:
                 l.remove()
                 ax_r.add_artist(l)
+
+    equalize_xaxis_groups(plots, equal_xaxes_groups)
+    equalize_yaxis_groups(plots, equal_yaxes_groups)
 
     # Plot lines here because equalize axis may have modified the plots
     for obj in plots:
@@ -170,7 +175,7 @@ def plot_data(figs, axes, axes_r, plots, titles, equal_xaxes_groups, equal_yaxes
 
 
 # Force the same ymin and ymax values for multiple plots
-def equalize_yaxis(plots, groups):
+def equalize_yaxis_groups(plots, groups):
     for group in groups:
         ymin = float("+inf")
         ymax = float("-inf")
@@ -183,18 +188,23 @@ def equalize_yaxis(plots, groups):
             ax.set_ylim(top=ymax, bottom=ymin)
 
 
-# Force the same ymin and ymax values for multiple plots
-def equalize_xaxis(plots, groups):
+def equalize_xaxis(axes):
+    xmin = float("+inf")
+    xmax = float("-inf")
+    for ax in axes:
+        x1, x2 = ax.get_xlim()
+        print(x1,x2)
+        xmin = min(xmin, x1)
+        xmax = max(xmax, x2)
+    for ax in axes:
+        ax.set_xlim(right=xmax, left=xmin)
+
+
+# Force the same xmin and xmax values for multiple plots
+def equalize_xaxis_groups(plots, groups):
     for group in groups:
-        xmin = float("+inf")
-        xmax = float("-inf")
-        group = [plots[i].ax for i in group] # Translate IDs to axes
-        for ax in group:
-            x1, x2 = ax.get_xlim()
-            xmin = min(xmin, x1)
-            xmax = max(xmax, x2)
-        for ax in group:
-            ax.set_xlim(right=xmax, left=xmin)
+        axes = [plots[i].ax for i in group] # Translate IDs to axes
+        equalize_xaxis(axes)
 
 
 # Write plots to pdf, creating dirs, if needed
