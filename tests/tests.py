@@ -75,9 +75,9 @@ def test_area():
     fig = figs[0]
 
 
-@image_comparison(baseline_images=['t6'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+@image_comparison(baseline_images=['stacked_bars'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_stacked_bars():
-    args = """ --plot '{kind: sb, datafile: data/prog_vs_ways.csv, index: 0, xlabel: Applications, ylabel: Progress, ymin: 0.6, ymax: 1, hatches: ["///", "", "", "", "%%%"], colormap: cubehelix, color: ["#ffffff"], legend_options: {loc: 1, frameon: False, ncol: 1, bbox_to_anchor: [1.09, 1.], title: Ways}}' --size 10 6 --rect 0 0 0.937 1"""
+    args = """ --plot '{kind: sb, datafile: data/prog_vs_ways.csv, index: 0, xlabel: Applications, ylabel: Progress, ymin: 0.6, ymax: 1, hatch: ["///", "", "", "", "", "...", ""], colormap: cubehelix, color: ["#ffffff"], legend_options: {loc: 1, frameon: False, ncol: 1, bbox_to_anchor: [1.09, 1.], title: Ways}, xrot: 90}' --size 10 6 --rect 0 0 0.997 1"""
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
@@ -97,9 +97,9 @@ def test_scatter():
     fig = figs[0]
 
 
-@image_comparison(baseline_images=['t8'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+@image_comparison(baseline_images=['bars_with_max_error'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_bars_with_maxerror():
-    args = """ --plot '{kind: b, datafile: data/progress_estimation.csv, index: 0, cols: [1,2], ecols: [3,4], errorbars: max, labels: [ASM,PTCA], ylabel: "Progress Estimation Error", legend_options: {loc: 9, frameon: False, ncol: 2}, xlabel: Number of applications, xrot: 0, ymax: 0.25, ypercent: True}' --size 4 2.5 --dpi 100"""
+    args = """ --plot '{kind: b, datafile: data/progress_estimation.csv, index: 0, cols: [1,2], ecols: [3,4], errorbars: max, labels: [ASM,PTCA], ylabel: "Progress Estimation Error", legend_options: {loc: 9, frameon: False, ncol: 2}, xlabel: Number of applications, xrot: 0, ymax: 0.25, ypercent: True, hatch: [" ", "//"]}' --size 4 2.5"""
     args = simplot.parse_args(shlex.split(args))
     figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
     simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)

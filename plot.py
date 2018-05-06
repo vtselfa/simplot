@@ -69,7 +69,7 @@ class Plot:
     labels = None  # List of strings
 
     # Arguments passed to the legend constructor
-    default_legend_options = {"loc": "best", "frameon": False} # {} -> No legend
+    default_legend_options = {"loc": "best"} # {} -> No legend
     legend_options = {}
 
     # Rotation degrees for the x labels
@@ -428,9 +428,29 @@ class BarPlot(Plot):
         ax = plt.gca()
         values = self.df[self.columns]
 
-        for c, (col, sty) in enumerate(zip(values.columns, style_cycler)):
+        # Error bars
+        if self.ecols:
+            errors = self.df[self.ecolumns]
+            if self.errorbars == "max":
+                assert len(self.cols) == len(self.ecols), colored("An error column is needed for each value column", "red")
+                new_errors = list()
+                for row in errors.values.T:
+                    new_errors.append([[0] * len(row), row])
+                errors = new_errors
+            elif self.errorbars == "min":
+                assert len(self.cols) == len(self.ecols), colored("An error column is needed for each value column", "red")
+                new_errors = list()
+                for row in errors.values.T:
+                    new_errors.append([row, [0] * len(row)])
+                errors = new_errors
+            else:
+                assert self.errorbars == "both", colored("'errorbars' allowed values are 'max', 'min' or 'both'" , "red")
+                assert len(self.cols) * 2 == len(self.ecols), colored("Two error columns are needed for each value column", "red")
+                errors = errors.values.T
+
+        for c, (col, ecol, sty) in enumerate(zip(values.columns, errors, style_cycler)):
             ind = compute_bar_locations(values, self.width, c)
-            bars = plt.bar(ind, values[col], self.width, label=self.colabel.get(col, col), **sty)
+            bars = plt.bar(ind, values[col], self.width, label=self.colabel.get(col, col), yerr=ecol, **sty)
 
         ind = compute_bar_locations(values, self.width, len(values.columns) / 2 - 0.5) # Positions of the xticks
         ax.set_xticks(ind)
@@ -540,76 +560,6 @@ class BarPlot(Plot):
         ax.tick_params(which='minor', pad=20, length=0)
 
         self.plot_legend(values)
-
-
-    def plot_bars_old(self, stacked=False):
-        ax = plt.gca()
-        values = self.df[self.columns]
-        errors = None
-
-        # Error bars
-        if self.ecols:
-            errors = self.df[self.ecolumns]
-            if self.errorbars == "max":
-                assert len(self.cols) == len(self.ecols), colored("An error column is needed for each value column", "red")
-                new_errors = list()
-                for row in errors.values.T:
-                    new_errors.append([[0] * len(row), row])
-                errors = new_errors
-            elif self.errorbars == "min":
-                assert len(self.cols) == len(self.ecols), colored("An error column is needed for each value column", "red")
-                new_errors = list()
-                for row in errors.values.T:
-                    new_errors.append([row, [0] * len(row)])
-                errors = new_errors
-            else:
-                assert self.errorbars == "both", colored("'errorbars' allowed values are 'max', 'min' or 'both'" , "red")
-                assert len(self.cols) * 2 == len(self.ecols), colored("Two error columns are needed for each value column", "red")
-                errors = errors.values.T
-
-        legend = None
-        if stacked:
-            legend = "reverse"
-
-        # Plot
-        values.plot(yerr=errors, kind='bar', stacked=stacked, ax=ax, error_kw={"elinewidth":1}, legend=legend)
-
-        # Ugly fix for hatches
-        if self.hatches:
-            # Posible hatches ('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
-            bars = ax.patches
-            aux = []
-            for h in self.hatches:
-                h = h.replace("%", "\\") # % is an alias to \ to avoid scaping issues
-                aux += [h] * len(values)
-            hatches = aux
-            for bar, hatch in zip(bars, hatches):
-                bar.set_hatch(hatch)
-
-        # Ugly fix for colors...
-        bars = ax.patches
-        aux = []
-        for c, _ in zip(ax._get_lines.prop_cycler, bars):
-            c = c["color"]
-            aux += [c] * len(values)
-        colors = aux
-        for bar, c in zip(bars, colors):
-            bar.set_facecolor(c)
-        if self.color:
-            colors = self.color
-            bars = ax.patches
-            aux = []
-            for c in colors:
-                aux += [c] * len(values)
-            colors = aux
-            for bar, c in zip(bars, colors):
-                bar.set_facecolor(c)
-
-        # Legend
-        handles, labels = ax.get_legend_handles_labels()
-        if self.labels:
-            labels = self.labels
-        ax.legend(handles, labels, **self.legend_options)
 
 
     def plot(self):
