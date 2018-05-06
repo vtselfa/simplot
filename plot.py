@@ -366,7 +366,7 @@ class BarPlot(Plot):
     # Errorbars {'min', 'max', 'both'}
     errorbars = "both"
 
-    hatch = [] #('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
+    hatch = [" "] #('', '\\', 'x', '/', '.', '-', '|', '*', 'o', '+', 'O')
 
     width = 1
 
@@ -513,8 +513,17 @@ class BarPlot(Plot):
         ind = compute_bar_locations(self.df, self.width)
         values = self.df[self.columns]
         values = values.cumsum(axis=1) # To make them "stacked"
-        for col in reversed(values.columns):
-            bars = plt.bar(ind, values[col], self.width, label=self.colabel.get(col, col))
+
+        style_cycler = self.make_style_cycler()
+        # To be able to reverse the styles
+        styles = []
+        for s, sty in enumerate(style_cycler):
+            if s == len(values.columns):
+                break
+            styles.append(sty)
+
+        for col, sty in zip(reversed(values.columns), reversed(styles)):
+            bars = plt.bar(ind, values[col], self.width, label=self.colabel.get(col, col), **sty)
 
         assert(len(values.index.levels) <= 2)
         ax.set_xticks(xtick_loc_per_level(values, 0, ind), minor=True)
