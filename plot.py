@@ -716,18 +716,13 @@ class LinePlot(Plot):
 
         # Legend
         handles, labels = ax.get_legend_handles_labels()
+        print(labels)
         ax.legend(handles, labels, **self.legend_options)
 
 
     def plot(self):
         # Put Y axis on the right
         ax = plt.gca()
-        if self.yright:
-            if not ax.has_data():
-                ax.get_yaxis().set_visible(False)
-            ax = ax.twinx()
-        else:
-            ax.get_yaxis().set_visible(True)
         self.ax = ax
 
         valid = False

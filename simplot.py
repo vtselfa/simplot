@@ -80,23 +80,9 @@ def default_args():
 
 def main():
     args = parse_args()
-    figs, axes = create_figures(args.grid, args.size, args.dpi)
-    plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = create_figures(args.grid, args.size, args.dpi)
+    plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     write_output(figs, args.output, args.rect)
-
-
-def merge_dicts(a, b, path=None):
-    "merges b into a"
-    if path is None: path = []
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge_dicts(a[key], b[key], path + [str(key)])
-            else:
-                a[key] = b[key]
-        else:
-            a[key] = b[key]
-    return a
 
 
 # Create one figure per page and one ax per plot
@@ -105,21 +91,27 @@ def create_figures(grids, size, dpi):
     mpl.rcParams['patch.force_edgecolor'] = True
     figures = []
     axes = []
+    axes_r = []
     for (xgrid, ygrid) in grids:
         fig, axs = plt.subplots(xgrid, ygrid)
         fig.set_size_inches(*size)
         fig.set_dpi(dpi)
+        print(fig.subplotpars.left)
         try:
             axs = list(axs.ravel()) # 2D to 1D
         except AttributeError:
             axs = [axs]
         figures.append(fig)
         axes += axs
-    return figures, axes
+        for ax in axes:
+            ax = ax.twinx()
+            ax.get_yaxis().set_visible(False)
+            axes_r.append(ax)
+    return figures, axes, axes_r
 
 
 # Iterate plots and plot
-def plot_data(figs, axes, plots, titles, equal_xaxes_groups, equal_yaxes_groups, rect):
+def plot_data(figs, axes, axes_r, plots, titles, equal_xaxes_groups, equal_yaxes_groups, rect):
     assert titles == [] or len(figs) == len(titles), colored("If --title is used, a title for each figure must be provided", 'red')
     axnum = 0
     for p, desc in enumerate(plots):
@@ -134,11 +126,19 @@ def plot_data(figs, axes, plots, titles, equal_xaxes_groups, equal_yaxes_groups,
 
         # Set ax to plot into
         if obj.axnum != None:
-            ax = axes[obj.axnum]
+            if obj.yright:
+                ax = axes_r[obj.axnum]
+            else:
+                ax = axes[obj.axnum]
         else:
             assert len(axes) > axnum, colored("Too many plots for this grid", 'red')
-            ax = axes[axnum]
+            if obj.yright:
+                ax = axes_r[axnum]
+            else:
+                ax = axes[axnum]
             axnum += 1
+
+        ax.get_yaxis().set_visible(True)
 
         plt.sca(ax)
         ax.autoscale(enable=True, axis='both', tight=True)

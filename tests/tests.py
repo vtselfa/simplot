@@ -12,8 +12,8 @@ def test_lineplot():
     args += " --size 4 2.5 --dpi 100"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -23,8 +23,8 @@ def test_lineplot_with_title():
     args += " --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -35,8 +35,8 @@ def test_lineplot_with_title2():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -48,8 +48,8 @@ def test_lineplot_manual_axis():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -59,8 +59,8 @@ def test_area():
     args += " --size 4 2.5 --dpi 100"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -70,8 +70,8 @@ def test_area():
     args += " --size 4 2.5 --dpi 100"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -80,8 +80,8 @@ def test_stacked_bars():
     args = """ --plot '{kind: sb, datafile: data/prog_vs_ways.csv, index: 0, xlabel: Applications, ylabel: Progress, ymin: 0.6, ymax: 1, hatches: ["///", "", "", "", "%%%"], colormap: cubehelix, color: ["#ffffff"], legend_options: {loc: 1, frameon: False, ncol: 1, bbox_to_anchor: [1.09, 1.], title: Ways}}' --size 10 6 --rect 0 0 0.937 1"""
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -92,8 +92,8 @@ def test_scatter():
     args += """ --plot '{axnum: 0, markeredgewidth: 0, color: [k], kind: ml, datafile: data/stalls_slowdown_correlation.csv, index: 0, cols: [1], linewidth: 0, marker: ["s"], markersize: 3, ylabel: Slowdown, xlabel: "Exec stall cycles due L2 misses", legend_options: {loc: 2, frameon: False, ncol: 1, markerscale: 1.5}, xmin: 0, ymin: 0, ymax: 12.2, xmax: 1.2e+12}' --size 8 5"""
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -101,8 +101,8 @@ def test_scatter():
 def test_bars_with_maxerror():
     args = """ --plot '{kind: b, datafile: data/progress_estimation.csv, index: 0, cols: [1,2], ecols: [3,4], errorbars: max, labels: [ASM,PTCA], ylabel: "Progress Estimation Error", legend_options: {loc: 9, frameon: False, ncol: 2}, xlabel: Number of applications, xrot: 0, ymax: 0.25, ypercent: True}' --size 4 2.5 --dpi 100"""
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -113,8 +113,8 @@ def test_equalize_xy1():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --equal-xaxes 0 1 --equal-yaxes 0 1 "
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -125,8 +125,8 @@ def test_equalize_xy2():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --equal-xaxes 0 1 --equal-yaxes 0 1 "
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -135,8 +135,8 @@ def test_vh_lines():
     args = """--plot '{kind: l, index: 0, cols: [1], datafile: data/A.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1], hl: [3.2, 3.4]}' --plot '{kind: l, index: 0, cols: [1], datafile: data/a.csv, hl: [[4, {lw: 2, ls: ":", color: "r"}], [3.4, {lw: 0.5, ls: "--", color: "g"}]], vl: 2, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1 cutted]}' -g 1 2 --size 4 2.5 --dpi 100 --equal-xaxes 0 1  --equal-yaxes 0 1"""
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 @image_comparison(baseline_images=['line_with_errorbars'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
@@ -144,8 +144,8 @@ def test_vh_lines():
     args = """--plot '{kind: l, index: 0, cols: [1], ecols: [2], datafile: data/err.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y1], ymax: 5}' --size 4 2.5 --dpi 100 --title 'Super nice title' """
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -157,8 +157,8 @@ def test_lineplot_yright():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -169,8 +169,8 @@ def test_lineplot_yright2():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -182,8 +182,19 @@ def test_lineplot_yright3():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
+
+
+@image_comparison(baseline_images=['line_yright_alone'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_lineplot_yright3():
+    args =  " --plot '{kind: l, yright: True, index: 0, cols: [1], datafile: data/stp.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Yright]}'"
+    args += " -g 1 1 --size 4 2.5 --dpi 100 --title 'Super nice title'"
+
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -195,8 +206,8 @@ def test_line_yright_equalize_yaxis():
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title' --equal-yaxes 0 1 2"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -207,8 +218,8 @@ def test_line_yright_equalize_yaxis():
     args += " -g 1 1 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
 
 
@@ -216,6 +227,15 @@ def test_line_yright_equalize_yaxis():
 def test_multiindexed_bars():
     args = """ --plot '{kind: mibars, datafile: data/multiindexed_bars.csv, index: [0, 2], cols: [3], ylabel: "Progress Estimation Error", xlabel: X Label}' --size 4 2.5 --dpi 100"""
     args = simplot.parse_args(shlex.split(args))
-    figs, axes = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]
+
+
+@image_comparison(baseline_images=['test_stacked_multiindexed_bars'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_stacked_multiindexed_bars():
+    args = """ --plot '{kind: mibars, datafile: data/multiindexed_bars.csv, index: [0, 2], cols: [3, 4], ylabel: "Progress Estimation Error", xlabel: X Label}' --size 4 2.5 --dpi 100"""
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
