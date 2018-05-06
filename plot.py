@@ -120,6 +120,10 @@ class Plot:
     # Put Y scale on the right
     yright = False
 
+    # Tick params, list of dictionaries with the parameters for the call plt.tick_params(...)
+    # See https://matplotlib.org/devdocs/api/_as_gen/matplotlib.axes.Axes.tick_params.html
+    tick_params = []
+
 
     def __init__(self):
         # assert self.cols, colored("You shold provide some cols to plot e.g. --plot '{... cols: [1,2,3], ...}'", "red")
@@ -322,6 +326,9 @@ class Plot:
         # Remove legend
         if self.legend_options == {}:
             ax.legend().remove()
+
+        for tp in self.tick_params:
+            plt.tick_params(**tp)
 
 
 class BoxPlot(Plot):
