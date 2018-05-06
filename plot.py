@@ -86,8 +86,8 @@ class Plot:
     xlabel = ""
 
     # Use grid?
-    xgrid = False
-    ygrid = False
+    xgrid = None
+    ygrid = None
 
     # Limits
     ymin = None # None / Float
@@ -309,9 +309,15 @@ class Plot:
 
         # Grid
         if self.xgrid != None:
-            ax.xaxis.grid(self.xgrid)
+            ax.set_axisbelow(True)
+            if self.xgrid == True:
+                self.xgrid = {}
+            ax.xaxis.grid(**self.xgrid)
         if self.ygrid != None:
-            ax.yaxis.grid(self.ygrid)
+            ax.set_axisbelow(True)
+            if self.ygrid == True:
+                self.ygrid = {}
+            ax.yaxis.grid(**self.ygrid)
 
         # Remove legend
         if self.legend_options == {}:
