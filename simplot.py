@@ -147,6 +147,14 @@ def plot_data(figs, axes, axes_r, plots, titles, equal_xaxes_groups, equal_yaxes
     equalize_xaxis(plots, equal_xaxes_groups)
     equalize_yaxis(plots, equal_yaxes_groups)
 
+    # When having two Y axis the legend of the left axis my be drawn below the data. This is a workaround
+    for ax, ax_r in zip(axes, axes_r):
+        if ax.get_visible() and ax_r.get_visible():
+            l = ax.get_legend()
+            if l:
+                l.remove()
+                ax_r.add_artist(l)
+
     # Plot lines here because equalize axis may have modified the plots
     for obj in plots:
         plt.sca(obj.ax)
