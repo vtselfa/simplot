@@ -17,7 +17,7 @@ from cycler import cycler
 # Read CSV file and transform it to a pandas dataframe
 def read_data(datafile):
     try:
-        df = pd.read_table(datafile, sep=",")
+        df = pd.read_table(datafile, sep=",", comment="#")
     except:
         traceback.print_exc()
         print(colored("Error: Reading '{}'".format(datafile), "red"), file=sys.stderr)

@@ -28,15 +28,16 @@ import os.path as osp
 import pandas as pd
 import pylab as pl
 import traceback
-import yaml
 
 from matplotlib.backends.backend_pdf import PdfPages
 from termcolor import colored
+from ruamel.yaml import YAML
 
 import plot
 
 
 def parse_args(args=None):
+    yaml = YAML()
     mpl_styles = matplotlib.style.available
     parser = argparse.ArgumentParser(description = colored('Line, area and bar plots for csv files. Required arguments are represented in ' + colored('red', 'red') + '.', attrs=['bold']))
     parser.add_argument('-p', '--plot', type=yaml.load, action='append', help='Plot in YAML dictionary format. '
