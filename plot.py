@@ -100,6 +100,11 @@ class Plot:
     yminorlocator = None # "AutoMinorLocator" should be a good choice
     xminorlocator = None # "AutoMinorLocator" should be a good choice
 
+    ymajorformatter = None
+    xmajorformatter = None
+    yminorformatter = None
+    xminorformatter = None
+
     # Index column
     index = None # int or list
 
@@ -302,6 +307,35 @@ class Plot:
                     args = {}
                 locator = getattr(ticker, loc)
                 setter(locator(**args))
+
+        # X/Y tick formatters
+        for setter, formatter in [(ax.xaxis.set_major_formatter, self.xmajorformatter), (ax.yaxis.set_major_formatter, self.ymajorformatter), (ax.xaxis.set_minor_formatter, self.xminorformatter), (ax.yaxis.set_minor_formatter, self.yminorformatter)]:
+            if formatter:
+                if isinstance(formatter, (list, tuple)):
+                    assert(len(formatter) == 2)
+                    form = formatter[0]
+                    args = formatter[1]
+                    assert isinstance(form, str)
+                    assert isinstance(args, dict)
+                else:
+                    form = formatter
+                    args = {}
+                constr = getattr(ticker, form) # Constructor for the formatter
+
+                # Workaround to the fact that the ScalarFormatter constructor does not accept scilimits
+                if form == "ScalarFormatter":
+                    scilimits = None
+                    if "scilimits" in args:
+                        scilimits = args["scilimits"]
+                        assert isinstance(scilimits, (list, tuple))
+                        assert len(scilimits) == 2
+                        del args["scilimits"]
+                    obj = constr(**args)
+                    obj.set_powerlimits(scilimits)
+                    setter(obj)
+                # Normal formatter
+                else:
+                    setter(constr(**args))
 
         # Percentage
         if self.ypercent:
