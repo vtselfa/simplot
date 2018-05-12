@@ -669,6 +669,10 @@ class LinePlot(Plot):
             handles = handles[::-1]
             labels = labels[::-1]
 
+        # Reverse if specified
+        if self.legend_options.pop("reverse", False):
+            handles = handles[::-1]
+            labels = labels[::-1]
         ax.legend(handles, labels, **self.legend_options)
 
 
@@ -703,7 +707,11 @@ class LinePlot(Plot):
 
         # Legend
         handles, labels = ax.get_legend_handles_labels()
-        print(labels)
+
+        # Reverse legend if specified
+        if self.legend_options.pop("reverse", False):
+            handles = handles[::-1]
+            labels = labels[::-1]
         ax.legend(handles, labels, **self.legend_options)
 
 
