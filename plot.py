@@ -165,7 +165,8 @@ class Plot:
             numcolors = len(self.cols)
             if self.numcolors:
                 numcolors = self.numcolors
-            cmcolor = [cmap(c / numcolors, 1) for c in range(numcolors)]
+            norm = mpl.colors.Normalize(vmin=0, vmax=numcolors - 1)
+            cmcolor = [cmap(norm(c)) for c in range(numcolors)]
             # Override colors
             color = list(cmcolor)
             if self.color:
