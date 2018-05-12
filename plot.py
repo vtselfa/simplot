@@ -610,7 +610,7 @@ class BarPlot(Plot):
 class LinePlot(Plot):
     kind = "line"
 
-    linewidth = 2
+    linewidth = None
     elinewidth = 1
     linestyle = None
     marker = None
