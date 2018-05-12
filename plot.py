@@ -12,6 +12,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
 from termcolor import colored
 from cycler import cycler
+from matplotlib.patches import Patch
 
 
 # Read CSV file and transform it to a pandas dataframe
@@ -267,6 +268,27 @@ class Plot:
             plt.errorbar((x, x, x), [y[0], mid, y[1]], **prop)
 
 
+    def make_style_cycler(self, style_props):
+        # Convert all the style propierties into cycle iterators and set them to the correct starting point
+        style_cycler = None
+        for prop in style_props:
+            value = getattr(self, prop)
+            if value == None:
+                continue
+            if not isinstance(value, list):
+                value = [value]
+            prop_cycler = cycler(prop, value) * (len(self.columns) + self.starting_style)
+            if not style_cycler:
+                style_cycler = prop_cycler
+            else:
+                style_cycler += prop_cycler
+
+        for _ in range(self.starting_style):
+            next(style_cycler)
+
+        return style_cycler
+
+
     def plot(self):
         assert self.plotted == False, colored("This plot has been already plotted!", "red")
 
@@ -417,28 +439,6 @@ class BarPlot(Plot):
         assert not self.ecols or len(self.cols) == len(self.ecols) or 2 * len(self.cols) == len(self.ecols),\
                 colored("You have {} cols but {} error cols: error cols shold be 0, equal or double the number of cols".format(len(self.cols), len(self.ecols)), "red")
 
-    def make_style_cycler(self):
-        style_props = ["color", "hatch"]
-
-        # Convert all the style propierties into cycle iterators and set them to the correct starting point
-        style_cycler = None
-        for prop in style_props:
-            value = getattr(self, prop)
-            if value == None:
-                continue
-            if not isinstance(value, list):
-                value = [value]
-            prop_cycler = cycler(prop, value) * (len(self.columns) + self.starting_style)
-            if not style_cycler:
-                style_cycler = prop_cycler
-            else:
-                style_cycler += prop_cycler
-
-        for _ in range(self.starting_style):
-            next(style_cycler)
-
-        return style_cycler
-
 
     def plot_legend(self, df):
         ax = plt.gca()
@@ -458,7 +458,7 @@ class BarPlot(Plot):
             indexes = indexes + (width * bar_num) # bar_num 0, correstponds to the first column, 1 to the second, etc.
             return indexes
 
-        style_cycler = self.make_style_cycler()
+        style_cycler = self.make_style_cycler(["color", "hatch"])
 
         ax = plt.gca()
         values = self.df[self.columns]
@@ -505,7 +505,7 @@ class BarPlot(Plot):
             indexes = indexes + width / 2
             return indexes
 
-        style_cycler = self.make_style_cycler()
+        style_cycler = self.make_style_cycler(["color", "hatch"])
 
         ax = plt.gca()
         values = self.df[self.columns]
@@ -569,7 +569,7 @@ class BarPlot(Plot):
         values = self.df[self.columns]
         values = values.cumsum(axis=1) # To make them "stacked"
 
-        style_cycler = self.make_style_cycler()
+        style_cycler = self.make_style_cycler(["color", "hatch"])
         # To be able to reverse the styles
         styles = []
         for s, sty in enumerate(style_cycler):
@@ -642,16 +642,33 @@ class LinePlot(Plot):
         # Plot
         ax = self.ax
         columns = self.columns
+        lw = 0
+        if self.linewidth:
+            lw = self.linewidth
 
-        legend = None
+        y = [self.df[col].values for col in columns]
+        x = self.df.index.values
+        labels = [self.colabel.get(col, col) for col in columns]
+
         if stacked:
-            legend = "reverse"
-
-        self.df[columns].plot(kind="area", colormap=self.colormap, ax=ax, stacked=stacked, legend=legend)
+            ax.stackplot(x, *y, colors=self.color, linewidth=lw, labels=labels)
+        else:
+            style_cycler = self.make_style_cycler(["color", "linewidth", "linestyle",])
+            for label, values, sty in zip(labels, y, style_cycler):
+                ax.fill_between(x, values, alpha=0.5, label=label, **sty)
 
         # Legend
         handles, labels = ax.get_legend_handles_labels()
-        labels = [self.colabel.get(column, column) for column in columns]
+        if stacked:
+            for h, (handle, label) in enumerate(zip(handles, labels)):
+                if handle.get_linewidth() == 0:
+                    lw = 0.1
+                    handles[h] = Patch(facecolor=handle.get_facecolor()[0], edgecolor="k", linewidth=lw)
+                    print("WAR: Modified legend of {}: linewidth forced to {}".format(label, lw))
+            # Reverse
+            handles = handles[::-1]
+            labels = labels[::-1]
+
         ax.legend(handles, labels, **self.legend_options)
 
 
@@ -663,23 +680,8 @@ class LinePlot(Plot):
             ecolumns = [None] * len(columns)
 
         style_props = ["color", "linewidth", "linestyle", "marker", "markersize", "markevery", "markeredgecolor", "markeredgewidth", "elinewidth"]
+        style_cycler = self.make_style_cycler(style_props)
 
-        # Convert all the style propierties into cycle iterators and set them to the correct starting point
-        style_cycler = None
-        for prop in style_props:
-            value = getattr(self, prop)
-            if value == None:
-                continue
-            if not isinstance(value, list):
-                value = [value]
-            prop_cycler = cycler(prop, value) * (len(columns) + self.starting_style)
-            if not style_cycler:
-                style_cycler = prop_cycler
-            else:
-                style_cycler += prop_cycler
-
-        for _ in range(self.starting_style):
-            next(style_cycler)
 
         for column, ecolumn, sty in zip(columns, ecolumns, style_cycler):
             if ecolumn:
