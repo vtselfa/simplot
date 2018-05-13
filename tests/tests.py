@@ -64,20 +64,9 @@ def test_area():
     fig = figs[0]
 
 
-@image_comparison(baseline_images=['t5'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
-def test_area():
-    args =  " --plot '{kind: area, datafile: data/cos.csv, index: 0, xlabel: Seconds, ylabel: Ways, colormap: magma_r, legend_options: {loc: 4, frameon: False, ncol: 1}}'"
-    args += " --size 4 2.5 --dpi 100"
-
-    args = simplot.parse_args(shlex.split(args))
-    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
-    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
-    fig = figs[0]
-
-
 @image_comparison(baseline_images=['stacked_bars'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_stacked_bars():
-    args = """ --plot '{kind: sb, datafile: data/prog_vs_ways.csv, index: 0, xlabel: Applications, ylabel: Progress, ymin: 0.6, ymax: 1, hatch: ["///", "", "", "", "", "...", ""], colormap: cubehelix, color: ["#ffffff"], legend_options: {loc: 1, frameon: False, ncol: 1, bbox_to_anchor: [1.09, 1.], title: Ways}, xrot: 90}' --size 10 6 --rect 0 0 0.997 1"""
+    args = """ --plot '{kind: sb, datafile: data/prog_vs_ways.csv, index: 0, xlabel: Applications, ylabel: Progress, ymin: 0.6, ymax: 1, hatch: ["///", "", "", "", "", "...", ""], colormap: cubehelix, numcolors: 8, color: ["#ffffff"], legend_options: {loc: 1, frameon: False, ncol: 1, bbox_to_anchor: [1.09, 1.], title: Ways}, xrot: 90}' --size 10 6 --rect 0 0 0.997 1"""
 
     args = simplot.parse_args(shlex.split(args))
     figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
@@ -151,8 +140,8 @@ def test_vh_lines():
 
 @image_comparison(baseline_images=['line_yright'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_lineplot_yright():
-    args =  " --plot '{kind: l, index: 0, colormap: cubehelix, numcolors: 3, color: [D1], cols: [1], datafile: data/short1.csv, ylabel: Hello from the left, xlabel: Xlabel, labels: [Yleft]}'"
-    args += """ --plot '{axnum: 0, colormap: cubehelix, numcolors: 3, color: [D2], yright: True, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/short2.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Yright], legend_options: {loc: 4}}'"""
+    args =  " --plot '{kind: l, index: 0, colormap: cubehelix, numcolors: 4, color: [D1], cols: [1], datafile: data/short1.csv, ylabel: Hello from the left, xlabel: Xlabel, labels: [Yleft]}'"
+    args += """ --plot '{axnum: 0, colormap: cubehelix, numcolors: 4, color: [D2], yright: True, kind: dl, linestyle: ":", index: 0, cols: [2], datafile: data/short2.csv, ylabel: Hello from the right, xlabel: Xlabel, labels: [Yright], legend_options: {loc: 4}}'"""
     args += " --plot '{kind: l, index: 0, cols: [3], datafile: data/stp.csv, ylabel: Ylabel, xlabel: Xlabel, labels: [Y3]}'"
     args += " -g 1 2 --size 4 2.5 --dpi 100 --title 'Super nice title'"
 
