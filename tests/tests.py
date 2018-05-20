@@ -228,3 +228,12 @@ def test_stacked_multiindexed_bars():
     figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
     simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
     fig = figs[0]
+
+
+@image_comparison(baseline_images=['some_bars'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
+def test_some_bars():
+    args = """--plot '{kind: b, datafile: data/summary.csv, index: 0, ymax: 1.5, ymin: 0.5, xrot: horizontal, legend_options: {loc: 9, frameon: False, ncol: 5}}' --size 5 3 """
+    args = simplot.parse_args(shlex.split(args))
+    figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
+    simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
+    fig = figs[0]

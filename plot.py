@@ -1,3 +1,4 @@
+import itertools as it
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -482,6 +483,8 @@ class BarPlot(Plot):
                 assert self.errorbars == "both", colored("'errorbars' allowed values are 'max', 'min' or 'both'" , "red")
                 assert len(self.cols) * 2 == len(self.ecols), colored("Two error columns are needed for each value column", "red")
                 errors = errors.values.T
+        else:
+            errors = it.cycle([None])
 
         for c, (col, ecol, sty) in enumerate(zip(values.columns, errors, style_cycler)):
             ind = compute_bar_locations(values, self.width, c)
