@@ -14,6 +14,7 @@ from matplotlib.ticker import FuncFormatter
 from termcolor import colored
 from cycler import cycler
 from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 
 
 # Read CSV file and transform it to a pandas dataframe
@@ -70,8 +71,11 @@ class Plot:
     cols = None # List of ints
     labels = None  # List of strings
 
+    # Show the legend or not
+    legend = True
+
     # Arguments passed to the legend constructor
-    default_legend_options = {"loc": "best"} # {} -> No legend
+    default_legend_options = {"loc": "best"}
     legend_options = {}
 
     # Rotation degrees for the x labels
@@ -290,6 +294,32 @@ class Plot:
         return style_cycler
 
 
+    def show_legend(self, options):
+        ax = plt.gca()
+        handles, labels = ax.get_legend_handles_labels()
+
+        # Handle edge color and line width
+        hec = options.pop("handleedgecolor", options.pop("hec", None))
+        hlw = options.pop("handlelinewidth", options.pop("hlw", None))
+        if hec or hlw:
+            for h, handle in enumerate(handles):
+                if isinstance(handle, Patch):
+                    handles[h] = Patch(handle)
+                elif isinstance(handle, Line2D):
+                    handles[h] = Line2D(handle)
+                else:
+                    print(colored("Unknown matplotlib class", "red"))
+                handles[h].set_edgecolor(hec)
+                handles[h].set_linewidth(hlw)
+
+        # Reverse if specified
+        if options.pop("reverse", False):
+            handles = handles[::-1]
+            labels = labels[::-1]
+
+        ax.legend(handles, labels, **options)
+
+
     def plot(self):
         assert self.plotted == False, colored("This plot has been already plotted!", "red")
 
@@ -381,9 +411,9 @@ class Plot:
                 self.ygrid = {}
             ax.yaxis.grid(**self.ygrid)
 
-        # Remove legend
-        if self.legend_options == {}:
-            ax.legend().remove()
+        # Legend
+        if self.legend:
+            self.show_legend(self.legend_options)
 
         for tp in self.tick_params:
             plt.tick_params(**tp)
@@ -441,13 +471,6 @@ class BarPlot(Plot):
                 colored("You have {} cols but {} error cols: error cols shold be 0, equal or double the number of cols".format(len(self.cols), len(self.ecols)), "red")
 
 
-    def plot_legend(self, df):
-        ax = plt.gca()
-        if len(df.columns) > 1:
-            handles, labels = ax.get_legend_handles_labels()
-            ax.legend(handles, labels, **self.legend_options)
-
-
     def plot_bars(self):
         def compute_bar_locations(df, width, bar_num):
             def sep(width):
@@ -494,8 +517,6 @@ class BarPlot(Plot):
         ax.set_xticks(ind)
         ax.set_xticklabels(values.index.values)
 
-        self.plot_legend(values)
-
 
     def plot_stacked_bars(self):
         def compute_bar_locations(df, width):
@@ -528,8 +549,6 @@ class BarPlot(Plot):
 
         ax.set_xticks(ind)
         ax.set_xticklabels(values.index.values)
-
-        self.plot_legend(values)
 
 
     def plot_multiindexed_bars(self):
@@ -597,8 +616,6 @@ class BarPlot(Plot):
 
         ax.tick_params(which='minor', pad=20, length=0)
 
-        self.plot_legend(values)
-
 
     def plot(self):
         if self.kind in ["sb", "stackedbars", "sbars"]:
@@ -660,24 +677,6 @@ class LinePlot(Plot):
             for label, values, sty in zip(labels, y, style_cycler):
                 ax.fill_between(x, values, alpha=0.5, label=label, **sty)
 
-        # Legend
-        handles, labels = ax.get_legend_handles_labels()
-        if stacked:
-            for h, (handle, label) in enumerate(zip(handles, labels)):
-                if handle.get_linewidth() == 0:
-                    lw = 0.1
-                    handles[h] = Patch(facecolor=handle.get_facecolor()[0], edgecolor="k", linewidth=lw)
-                    print("WAR: Modified legend of {}: linewidth forced to {}".format(label, lw))
-            # Reverse
-            handles = handles[::-1]
-            labels = labels[::-1]
-
-        # Reverse if specified
-        if self.legend_options.pop("reverse", False):
-            handles = handles[::-1]
-            labels = labels[::-1]
-        ax.legend(handles, labels, **self.legend_options)
-
 
     def plot_line(self):
         ax = self.ax
@@ -707,15 +706,6 @@ class LinePlot(Plot):
                 y = data.tolist()
 
             plt.errorbar(x, y, yerr=yerr, label=self.colabel.get(column, column), axes=ax, **sty)
-
-        # Legend
-        handles, labels = ax.get_legend_handles_labels()
-
-        # Reverse legend if specified
-        if self.legend_options.pop("reverse", False):
-            handles = handles[::-1]
-            labels = labels[::-1]
-        ax.legend(handles, labels, **self.legend_options)
 
 
     def plot(self):

@@ -214,7 +214,7 @@ def test_line_yright_equalize_yaxis():
 
 @image_comparison(baseline_images=['test_multiindexed_bars'], extensions=['pdf'], savefig_kwarg=dict(pad_inches = 0))
 def test_multiindexed_bars():
-    args = """ --plot '{kind: mibars, datafile: data/multiindexed_bars.csv, index: [0, 2], cols: [3], ylabel: "Progress Estimation Error", xlabel: X Label}' --size 4 2.5 --dpi 100"""
+    args = """ --plot '{kind: mibars, datafile: data/multiindexed_bars.csv, index: [0, 2], cols: [3], ylabel: "Progress Estimation Error", xlabel: X Label, legend: False}' --size 4 2.5 --dpi 100"""
     args = simplot.parse_args(shlex.split(args))
     figs, axes, axes_r = simplot.create_figures(args.grid, args.size, args.dpi)
     simplot.plot_data(figs, axes, axes_r, args.plot, args.title, args.equal_xaxes, args.equal_yaxes, args.rect)
